@@ -20,9 +20,20 @@ Vite, React 19, TypeScript, react-router-dom (BrowserRouter), idb-keyval for sto
 - `src/components/`: `Layout` (side rail, bottom nav on mobile), `Gauge` and `GaugeHero` (the warranty cable), `CableRow`, `ItemForm`, `EmptyBench`
 - `src/pages/`: Overview `/`, Items `/items` (filters live in the URL query), ItemPage `/items/:id`, ItemFormPages `/items/new` and `/items/:id/edit`, Timeline `/timeline`, Places `/places`, Backup `/backup`, NotFound
 
-## Design rules (keep these)
+## Owner decision, 2026-11-08: redesign to "Signal"
 
-The look is an electronics bench. Do not replace it with a generic component-library look.
+ShahGul wants a modern, one-of-a-kind look and says they will not open the app if they dislike how it looks and feels. This decision overrides the "no generic component-library look" and "no CSS framework" lines below. Binding points:
+
+- Direction is **Signal**: near-black surfaces, one luminous warranty cable per item (glows blue, then amber, then red as the warranty runs out; the plug drops out when it ends), a bento-grid Overview, warm paper-white only on item detail pages, dark by default with a real light theme via `html[data-scheme]`.
+- Libraries to use, via their MCP servers: shadcn (Radix primitives, dialogs, selects, command palette), Magic UI (Bento Grid, Border Beam, Number Ticker), React Bits (Dot Grid, Aurora or Dark Veil background), Aceternity (one hero effect). One effect per view; every animation stops under `prefers-reduced-motion`; WebGL backgrounds load lazily on Overview only and fall back to a static gradient on phones.
+- Tailwind v4 and `components.json` get added additively; keep the existing CSS-variable tokens.
+- The warranty cable stays the signature element. Colour is never the only status signal.
+- Order of work: approved mockup first (standalone file, `mockups/signal.html`), then apply to the app, then sync. Nothing is applied to the app until the owner approves the mockup.
+- When the redesign lands, rewrite the "Stack" and "Design rules" sections to match the code.
+
+## Design rules (current code, to be replaced by Signal)
+
+The look is currently an electronics bench.
 
 - Background is a green cutting-mat grid (`--mat`). Light "paper" surfaces use label-tape white (`--tape`) with ink text (`--ink`).
 - The warranty cable is the one memorable element: a track from purchase date to a socket, a coloured cable for the warranty left, a plug at today. When the warranty ends the plug lies loose beside the socket. Reuse `Gauge` instead of inventing new progress bars.
@@ -44,9 +55,10 @@ The look is an electronics bench. Do not replace it with a generic component-lib
 
 ## Roadmap
 
-1. Sync across devices: a small API and database on the OCI VM (or Cloudflare D1 and R2), with a login. Keep the storage layer behind `useStore` so the backend is swappable and JSON export keeps working.
-2. Installable PWA with warranty expiry notifications
-3. QR labels that open `/items/:id` when scanned
-4. Service and repair history per item
+1. Signal redesign (see the owner decision above). Also fix: Overview says "things" (units) while Items says "items"; Timeline hides ended warranties until you scroll left; Items search placeholder is clipped; the "Bought" column header has no matching date; copy that says data stays in this browser must change once sync exists.
+2. Sync across devices, on hold until the redesign is done, design not yet approved. Draft: Node and Fastify plus SQLite on the OCI VM behind nginx, attachments as files on disk, one-user login with a session cookie (optional TOTP), a `rev` per item with per-field merge and edit-beats-delete, server-assigned asset tags, soft deletes, nightly backups. Keep the storage layer behind `useStore` so the app works offline and JSON export keeps working.
+3. Installable PWA with warranty expiry notifications
+4. QR labels that open `/items/:id` when scanned
+5. Service and repair history per item
 
 Data contains serial numbers and invoices. Keep the repo private and never commit exported backups.

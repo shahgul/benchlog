@@ -43,11 +43,12 @@ Everything is stored in your browser (IndexedDB), so it works offline and nothin
 
 ## Roadmap
 
-- Sync across devices with a small API and database on the OCI VM (or Cloudflare D1 and R2), behind a login
+- "Signal" redesign: a darker, more modern look built around a glowing warranty cable (in progress, mockup first)
+- Sync across devices with a small API and database on the OCI VM (or Cloudflare D1 and R2), behind a login (after the redesign)
 - Installable PWA with warranty expiry notifications
 - QR labels that open an item's page when scanned
 - Service and repair history per item
 
 ## Design
 
-The look comes from an electronics bench: a green cutting-mat grid, label-maker tape for asset tags, and wire colours for categories. Type is Big Shoulders Display for headings and Bricolage Grotesque for text.
+The current look comes from an electronics bench: a green cutting-mat grid, label-maker tape for asset tags, and wire colours for categories. Type is Big Shoulders Display for headings and Bricolage Grotesque for text. It is being replaced by "Signal" (near-black surfaces, a luminous warranty cable, bento Overview); see `CLAUDE.md`.
