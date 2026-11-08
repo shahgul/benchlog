@@ -3,630 +3,857 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Benchlog Signal mockup</title>
+<title>Benchlog, Signal mockup</title>
+<meta name="color-scheme" content="dark light">
+<script>
+  /* Theme before first paint so there is no flash. */
+  try { var s = localStorage.getItem('benchlog-scheme'); if (s === 'light' || s === 'dark') document.documentElement.dataset.scheme = s; } catch (e) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@85..140,500..800&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /*
-  Signal mockup. Standalone, not part of the app build.
-  Layout: slim rail (dock on phones), bento Overview, paper spec plate on item pages.
-  Tokens map to the app's html[data-scheme]. Dark is the default.
+  SIGNAL mockup. Standalone: no build, no app code.
+
+  Decisions
+  - Hierarchy: the Overview answers one question first, "what warranty ends next and what do I do about it".
+    That is the hero. Everything below is ordered by how soon you will need it:
+    still covered, not covered, then money and places.
+  - One navigation: a top bar on desktop, a bottom dock on phones. No side rail.
+  - One effect per view: the hero border beam on Overview. Item pages use none beyond the cable drawing in.
+  - The cable: cord = time already used, glowing rails between plug and socket = warranty left,
+    plug at today. When the warranty ends the plug lies loose beside the socket and the rails go out.
+  - Paper white is used only on the item sheet.
+  - Type: Anybody (wide, hardware-label feel) for numbers and headings, Schibsted Grotesk for reading.
 */
+
 :root {
-  --bg: #06080d;
-  --surface: #0d121b;
-  --surface-2: #131a27;
-  --line: #1b2433;
-  --line-2: #2b374c;
-  --ink: #eef2fa;
-  --muted: #94a0b8;
-  --faint: #5f6b82;
-  --active: #5aa2ff;
-  --soon: #ffb547;
-  --ended: #ff6568;
-  --none: #6b7790;
-  --paper: #f1eee7;
-  --paper-ink: #14171f;
-  --paper-muted: #5b5f6b;
-  --paper-line: #d9d4c8;
-  --dot: rgba(148, 160, 184, 0.16);
-  --g1: 70%;
-  --g2: 34%;
-  --aura: 26%;
-  --display: 'Big Shoulders Display', 'Arial Narrow', Impact, sans-serif;
-  --body: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'Geist Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --font-display: 'Anybody', 'Arial Narrow', system-ui, sans-serif;
+  --font-body: 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --r-hero: 28px; --r-tile: 22px; --r-row: 14px;
+}
+
+/* ---------- Tokens: dark (default) ---------- */
+:root, html[data-scheme='dark'] {
   color-scheme: dark;
+  --bg: #06070a; --s1: #0d0f15; --s2: #151821; --s3: #1d212d;
+  --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.16);
+  --tx: #eceff6; --mu: #98a0b6; --faint: #656d84;
+  --focus: #9dbbff;
+  --act: #4f8cff;  --act-t: #8fb3ff;
+  --soon: #ffb224; --soon-t: #ffc457;
+  --end: #ff5c63;  --end-t: #ff8d92;
+  --none: #6b7388; --none-t: #98a0b6;
+  --plug: #262b3a; --plug-edge: #475069; --pin: #c9cfdf; --sock: #181b26; --sock-edge: #343b50; --cord-base: #2a3042;
+  --glow-a: .55;
+  --wash: rgba(79,140,255,.07);
 }
-:root[data-scheme="light"] {
-  --bg: #edf0f6;
-  --surface: #ffffff;
-  --surface-2: #f4f6fa;
-  --line: #dbe1ec;
-  --line-2: #c4cddd;
-  --ink: #0b1020;
-  --muted: #546079;
-  --faint: #8591a8;
-  --active: #2a6be0;
-  --soon: #b3640a;
-  --ended: #d02c36;
-  --none: #8591a8;
-  --paper: #ffffff;
-  --paper-ink: #0b1020;
-  --paper-muted: #546079;
-  --paper-line: #dbe1ec;
-  --dot: rgba(84, 96, 121, 0.22);
-  --g1: 45%;
-  --g2: 18%;
-  --aura: 14%;
+/* ---------- Tokens: light ---------- */
+html[data-scheme='light'] {
   color-scheme: light;
+  --bg: #e9ecf2; --s1: #ffffff; --s2: #f3f5f9; --s3: #e6e9f1;
+  --line: rgba(12,16,30,.09); --line2: rgba(12,16,30,.2);
+  --tx: #0c1018; --mu: #4f576c; --faint: #8089a0;
+  --focus: #1d4ed0;
+  --act: #2f66f0;  --act-t: #1d4ed0;
+  --soon: #e59400; --soon-t: #8a5300;
+  --end: #e0343f;  --end-t: #b4232c;
+  --none: #8a91a4; --none-t: #4f576c;
+  --plug: #d4d9e6; --plug-edge: #8d96ad; --pin: #626b83; --sock: #e2e6f0; --sock-edge: #aab2c6; --cord-base: #cdd3e1;
+  --glow-a: .3;
+  --wash: rgba(47,102,240,.06);
 }
 
-* { box-sizing: border-box; }
-html, body { margin: 0; }
+/* Status sets --c (graphic), --cg (bright, for dark strips), --ct (readable text) */
+[data-status='active'] { --c: var(--act);  --cg: #5b97ff; --ct: var(--act-t); }
+[data-status='soon']   { --c: var(--soon); --cg: #ffb224; --ct: var(--soon-t); }
+[data-status='ended']  { --c: var(--end);  --cg: #ff5c63; --ct: var(--end-t); }
+[data-status='none']   { --c: var(--none); --cg: #6b7388; --ct: var(--none-t); }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
 body {
-  background: var(--bg);
-  color: var(--ink);
-  font: 400 15px/1.5 var(--body);
-  -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
+  margin: 0; min-height: 100vh; background: var(--bg); color: var(--tx);
+  font: 400 15px/1.5 var(--font-body);
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
 }
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background-image: radial-gradient(var(--dot) 1px, transparent 1.4px);
-  background-size: 22px 22px;
-  -webkit-mask-image: radial-gradient(ellipse at 60% 0%, #000 0%, transparent 75%);
-  mask-image: radial-gradient(ellipse at 60% 0%, #000 0%, transparent 75%);
+body::before { /* one quiet static wash, not an effect */
+  content: ''; position: fixed; inset: 0 0 auto 0; height: 520px; pointer-events: none; z-index: -1;
+  background: radial-gradient(60% 100% at 18% 0%, var(--wash), transparent 70%);
 }
-a { color: inherit; }
-button { font: inherit; color: inherit; cursor: pointer; }
-:focus-visible { outline: 2px solid var(--active); outline-offset: 3px; border-radius: 6px; }
+.big, .money, .r-stat, .legend b, .ends b, .fact b, .spec .mono, .tag { font-variant-numeric: tabular-nums; }
+h1, h2, h3, p, dl, dd, ul { margin: 0; padding: 0; }
+ul { list-style: none; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+svg { display: block; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 8px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.skip { position: absolute; left: 12px; top: -60px; background: var(--ink); color: var(--bg); padding: 8px 12px; border-radius: 8px; z-index: 50; }
+.skip { position: absolute; left: 16px; top: -60px; z-index: 100; background: var(--tx); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-weight: 600; }
 .skip:focus { top: 12px; }
+.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
-/* shell */
-.shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
-.rail {
-  position: sticky; top: 0; height: 100vh;
-  display: flex; flex-direction: column; gap: 28px;
-  padding: 28px 20px 24px;
-  border-right: 1px solid var(--line);
+/* ---------- Top bar (desktop) / dock (phone) ---------- */
+.bar {
+  position: sticky; top: 0; z-index: 30;
+  background: color-mix(in oklab, var(--bg) 82%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3);
+  border-bottom: 1px solid var(--line);
 }
-.wordmark { font: 800 34px/0.9 var(--display); text-decoration: none; letter-spacing: 0.01em; }
-.wordmark span { color: var(--active); }
-.nav { display: flex; flex-direction: column; gap: 2px; }
-.nav a {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px; border-radius: 10px;
-  color: var(--muted); text-decoration: none; font-weight: 500;
+.bar-in { max-width: 1180px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; gap: 28px; }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 20px/1 var(--font-display); font-stretch: 125%; letter-spacing: -.01em; }
+.brand svg { width: 30px; height: 20px; }
+.nav { position: relative; display: flex; gap: 2px; margin-right: auto; }
+.nav a { position: relative; z-index: 1; padding: 8px 14px; border-radius: 999px; color: var(--mu); font-weight: 500; transition: color .2s; }
+.nav a:hover { color: var(--tx); }
+.nav a[aria-current='page'] { color: var(--tx); }
+.nav .pill { position: absolute; z-index: 0; left: 0; top: 0; height: 100%; width: 0; border-radius: 999px; background: var(--s3); transition: transform .5s var(--spring), width .5s var(--spring), opacity .2s; opacity: 0; }
+.tools { display: flex; align-items: center; gap: 8px; }
+.find {
+  display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 8px 0 14px; min-width: 236px;
+  border: 1px solid var(--line2); border-radius: 999px; color: var(--mu);
+  transition: border-color .2s, background .2s, transform .35s var(--spring);
 }
-.nav a svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.nav a:hover { color: var(--ink); background: var(--surface); }
-.nav a[aria-current="page"] { color: var(--ink); background: var(--surface-2); box-shadow: inset 2px 0 0 var(--active); }
-.rail-foot { margin-top: auto; display: flex; flex-direction: column; gap: 12px; }
-.rail-note { color: var(--faint); font-size: 13px; margin: 0; }
-.theme { background: none; border: 1px solid var(--line-2); border-radius: 10px; padding: 8px 12px; color: var(--muted); text-align: left; }
-.theme:hover { color: var(--ink); border-color: var(--faint); }
-
+.find:hover { background: var(--s1); color: var(--tx); }
+.find:active { transform: scale(.97); }
+.find span { margin-right: auto; }
+kbd { font: 500 12px/1 var(--font-body); padding: 5px 8px; border-radius: 8px; background: var(--s3); color: var(--mu); }
+.icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 999px; color: var(--mu); transition: background .2s, color .2s, transform .35s var(--spring); }
+.icon-btn:hover { background: var(--s3); color: var(--tx); }
+.icon-btn:active { transform: scale(.9); }
+.theme .moon { display: none; }
+html[data-scheme='light'] .theme .sun { display: none; }
+html[data-scheme='light'] .theme .moon { display: block; }
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 11px 18px; border-radius: 10px; border: 1px solid var(--line-2);
-  background: transparent; color: var(--ink); font-weight: 600; text-decoration: none; line-height: 1.1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px;
+  border-radius: 999px; font-weight: 600; white-space: nowrap;
+  transition: transform .4s var(--spring), background .2s, box-shadow .25s, border-color .2s;
 }
-.btn:hover { border-color: var(--faint); }
-.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.btn.primary:hover { opacity: 0.9; }
-.btn.danger { color: var(--ended); border-color: color-mix(in srgb, var(--ended) 45%, transparent); }
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: scale(.96); }
+.btn-solid { background: var(--tx); color: var(--bg); }
+.btn-solid:hover { box-shadow: 0 8px 28px -8px color-mix(in oklab, var(--cg, var(--act)) 70%, transparent); }
+.btn-line { border: 1px solid var(--line2); }
+.btn-line:hover { background: var(--s2); }
+.btn-sm { height: 40px; padding: 0 16px; }
 
-.page { padding: 28px clamp(16px, 4vw, 48px) 80px; max-width: 1240px; width: 100%; }
-.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
-.search {
-  display: flex; align-items: center; gap: 10px; flex: 1; max-width: 460px;
-  padding: 10px 14px; border-radius: 12px;
-  background: var(--surface); border: 1px solid var(--line); color: var(--muted); text-align: left;
-}
-.search:hover { border-color: var(--line-2); }
-.search svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; flex: none; }
-.search span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-kbd { font: 500 12px var(--mono); padding: 2px 7px; border-radius: 6px; border: 1px solid var(--line-2); color: var(--muted); }
-.today-date { color: var(--faint); font: 400 13px var(--mono); }
+.dock { display: none; }
 
-/* tiles */
-.bento { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
-.tile {
-  position: relative; overflow: hidden; min-width: 0;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
-  padding: 20px 22px 22px;
-}
-.tile h2 { margin: 0 0 14px; font: 700 26px/1 var(--display); letter-spacing: 0.01em; }
-.tile-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-.tile-head h2 { margin: 0; }
-.tile-head a { color: var(--muted); font-size: 14px; }
-.hero { grid-column: span 8; grid-row: span 2; border-radius: 22px; padding: 28px 30px 26px; border-color: var(--line-2); }
-.stat { grid-column: span 4; }
-.next { grid-column: span 4; }
-.ended-tile, .own, .spend { grid-column: span 4; }
+/* ---------- Page ---------- */
+main { max-width: 1180px; margin: 0 auto; padding: 28px 24px 120px; outline: none; }
+.title { font: 700 clamp(30px, 4vw, 40px)/1.05 var(--font-display); font-stretch: 120%; letter-spacing: -.02em; }
+.page-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.page-head p { color: var(--mu); margin-top: 6px; }
 
-.hero::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background:
-    radial-gradient(520px 260px at 88% -8%, color-mix(in srgb, var(--c) var(--aura), transparent), transparent 70%),
-    radial-gradient(420px 220px at 6% 110%, color-mix(in srgb, var(--c) calc(var(--aura) * .5), transparent), transparent 70%);
-}
-.hero > * { position: relative; }
+/* ---------- Status chip (always carries words) ---------- */
+.chip { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px 0 10px; border-radius: 999px; font-weight: 600; font-size: 14px; color: var(--ct); background: color-mix(in oklab, var(--c) 14%, transparent); }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); }
+[data-status='ended'] .chip i, [data-status='none'] .chip i { box-shadow: none; }
 
-/* border beam (Magic UI idea, plain CSS) */
-@property --beam { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-.beam::after {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
-  background: conic-gradient(from var(--beam), transparent 0 72%, var(--c) 88%, transparent 100%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude;
-  animation: spin 7s linear infinite;
-}
-@keyframes spin { to { --beam: 360deg; } }
+/* ---------- The cable ---------- */
+@property --k { syntax: '<number>'; inherits: true; initial-value: 1; }
+@property --a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 
-.kicker { margin: 0 0 6px; color: var(--muted); font-size: 15px; }
-.hero-title { margin: 0; font: 800 clamp(52px, 9vw, 112px)/0.88 var(--display); letter-spacing: 0.005em; text-wrap: balance; }
-.hero-title a { text-decoration: none; }
-.hero-title a:hover { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 8px; text-decoration-color: var(--c); }
-.hero-line { margin: 18px 0 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 17px; }
-.hero-num { font: 800 clamp(84px, 14vw, 168px)/0.8 var(--display); color: var(--c); text-shadow: 0 0 40px color-mix(in srgb, var(--c) 45%, transparent); font-variant-numeric: tabular-nums; }
-.hero-unit { font: 700 clamp(28px, 4vw, 44px)/1 var(--display); color: var(--ink); }
-.hero .cable { margin-top: 30px; }
-.dates { display: flex; justify-content: space-between; gap: 16px; margin-top: 12px; color: var(--muted); font: 400 13px var(--mono); }
-.dates b { display: block; color: var(--ink); font: 500 14px var(--mono); }
-.dates div:last-child { text-align: right; }
-
-.big { font: 800 56px/0.9 var(--display); font-variant-numeric: tabular-nums; }
-.big small { font: 700 26px var(--display); color: var(--muted); margin-left: 6px; }
-.stat p { margin: 10px 0 0; color: var(--muted); }
-.pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-.pill {
-  display: inline-flex; align-items: center; gap: 8px; padding: 5px 11px; border-radius: 99px;
-  border: 1px solid var(--line-2); font-size: 13px; color: var(--muted);
-}
-.pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); }
-
-/* asset tag */
-.tag {
-  position: relative; display: inline-flex; align-items: center; flex: none;
-  padding: 5px 10px 5px 13px; border-radius: 6px;
-  background: var(--surface-2); border: 1px solid var(--line-2);
-  font: 800 14px/1 var(--display); letter-spacing: 0.06em; color: var(--ink);
-}
-.tag::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--wire); border-radius: 6px 0 0 6px; }
-.tag.big { font-size: 22px; padding: 7px 14px 7px 18px; border-radius: 8px; }
-.tag.big::before { width: 6px; border-radius: 8px 0 0 8px; }
-
-/* rows */
-.rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.row { padding: 12px 0; border-top: 1px solid var(--line); }
-.row:first-child { border-top: 0; padding-top: 0; }
-.row:last-child { padding-bottom: 0; }
-.row-top { display: flex; align-items: center; gap: 12px; }
-.row-name { flex: 1; min-width: 0; font-weight: 600; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row-name:hover { text-decoration: underline; text-underline-offset: 4px; }
-.row-left { color: var(--c); font-size: 13px; font-weight: 600; white-space: nowrap; }
-.row .cable { margin-top: 6px; }
-.row-sub { color: var(--faint); font-size: 13px; margin: 6px 0 0; }
-.ended-tile { border-color: color-mix(in srgb, var(--ended) 22%, var(--line)); }
-
-/* bars */
-.bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.bars li { display: grid; grid-template-columns: 76px minmax(0, 1fr) 44px; align-items: center; gap: 12px; font-size: 14px; }
-.bars .v { text-align: right; color: var(--muted); font: 400 13px var(--mono); }
-.bars .t { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
-.bars .b { display: block; height: 100%; border-radius: 99px; background: var(--wire); transform-origin: left; animation: draw 800ms cubic-bezier(.2, .7, .2, 1) both; }
-
-/* warranty cable */
 .cable {
-  --h: 48px; --sw: 30px; --sh: 34px; --pw: 22px; --ph: 20px; --wh: 4px;
-  display: flex; align-items: center; height: var(--h); position: relative;
-  --glow: color-mix(in srgb, var(--c) var(--g1), transparent);
-  --glow2: color-mix(in srgb, var(--c) var(--g2), transparent);
+  --h: 26px; --pw: calc(var(--h) * 1.5); --sw: calc(var(--h) * 1.1); --p: .5; --lc: var(--c);
+  --t: max(3px, calc(var(--h) * .11));
+  --plug-x: calc((100% - var(--sw) - var(--pw)) * var(--p) * var(--k));
+  position: relative; display: block; width: 100%; height: var(--h);
 }
-.cable.sm { --h: 24px; --sw: 18px; --sh: 20px; --pw: 14px; --ph: 12px; --wh: 3px; }
-.cable.lg { --h: 84px; --sw: 46px; --sh: 58px; --pw: 34px; --ph: 30px; --wh: 7px; }
-.run { position: relative; flex: 1; height: 100%; }
-.track { position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed var(--line-2); transform: translateY(-1px); }
-.wire {
-  position: absolute; top: 50%; left: calc(var(--e) * 100%); right: 0; height: var(--wh);
-  border-radius: 99px; background: var(--c); transform-origin: left center;
-  box-shadow: 0 0 10px var(--glow), 0 0 28px var(--glow2);
-  animation: draw 900ms cubic-bezier(.2, .7, .2, 1) both;
+.cable .cord {
+  position: absolute; left: 0; top: 50%; height: var(--t); transform: translateY(-50%); border-radius: 99px;
+  width: calc(var(--plug-x) + var(--pw) * .12);
+  background: color-mix(in oklab, var(--lc) 42%, var(--cord-base));
 }
-@keyframes draw { from { transform: translateY(-50%) scaleX(0); } to { transform: translateY(-50%) scaleX(1); } }
-.bars .b { animation-name: grow; }
-@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-.plug {
-  position: absolute; top: 50%; left: calc(var(--e) * 100%); width: var(--pw); height: var(--ph);
-  transform: translate(-50%, -50%); border-radius: 5px 3px 3px 5px;
-  background: var(--ink); color: var(--ink);
-  box-shadow: 0 0 0 3px var(--surface);
+.cable .rail {
+  position: absolute; height: 2px; border-radius: 2px; background: var(--lc);
+  left: calc(var(--plug-x) + var(--pw) * .96); right: calc(var(--sw) * .94);
+  box-shadow: 0 0 6px var(--lc), 0 0 18px color-mix(in oklab, var(--lc) calc(var(--glow-a) * 100%), transparent);
 }
-.plug::before, .plug::after {
-  content: ""; position: absolute; right: calc(var(--pw) * -0.34); width: calc(var(--pw) * 0.4);
-  height: max(2px, calc(var(--ph) * 0.15)); background: currentColor; border-radius: 2px;
+.cable .r1 { top: calc(var(--h) * .328 - 1px); }
+.cable .r2 { top: calc(var(--h) * .672 - 1px); }
+.cable .plug { position: absolute; top: 0; left: var(--plug-x); width: var(--pw); height: var(--h); }
+.cable .socket { position: absolute; top: 0; right: 0; width: var(--sw); height: var(--h); }
+.cable:not([data-state='ended']):not([data-state='none']) .socket { filter: drop-shadow(0 0 5px color-mix(in oklab, var(--lc) 55%, transparent)); }
+.cable:not([data-state='ended']):not([data-state='none']) .socket .slot { fill: color-mix(in oklab, var(--lc) 70%, #000); }
+
+/* Ended: no light, plug lies loose beside the socket */
+.cable[data-state='ended'] .rail { display: none; }
+.cable[data-state='ended'] .plug {
+  left: calc(100% - var(--sw) - var(--pw) - var(--h) * .55);
+  transform: translateY(calc(var(--h) * .3)) rotate(-17deg); transform-origin: 30% 50%;
 }
-.plug::before { top: 22%; }
-.plug::after { bottom: 22%; }
-.hero .plug { box-shadow: 0 0 0 4px var(--surface); }
-.socket {
-  position: relative; flex: none; width: var(--sw); height: var(--sh); border-radius: 6px;
-  background: var(--surface-2); border: 1px solid color-mix(in srgb, var(--c) 55%, var(--line-2));
-  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 22%, transparent);
+.cable[data-state='ended'] .cord { top: calc(50% + var(--h) * .22); width: calc(100% - var(--sw) - var(--pw) - var(--h) * .55 + var(--pw) * .14); background: color-mix(in oklab, var(--lc) 34%, var(--cord-base)); }
+.cable[data-state='ended'] .socket .slot { fill: #05060a; }
+/* No warranty: empty socket, dashed run */
+.cable[data-state='none'] .plug, .cable[data-state='none'] .rail { display: none; }
+.cable[data-state='none'] .cord { background: none; height: 0; border-top: 2px dashed var(--faint); border-radius: 0; width: calc(100% - var(--sw) * 1.1); opacity: .6; }
+.cable .slot { fill: #07080c; }
+
+/* Dark inset strip: the "lit" surface. Same in light and dark so the glow always reads. */
+.strip {
+  --lc: var(--cg);
+  --plug: #2a3043; --plug-edge: #56607c; --pin: #d7dcea; --sock: #1a1e2b; --sock-edge: #3a425a; --cord-base: #2c3347; --glow-a: .55;
+  --faint: #6b7388; --mu: #a2a9be; --tx: #eceff6;
+  position: relative; border-radius: 20px; padding: 56px clamp(18px, 3vw, 34px) 24px; background:
+    radial-gradient(70% 120% at 20% 0%, color-mix(in oklab, var(--cg) 11%, transparent), transparent 70%), #090b11;
+  border: 1px solid rgba(255,255,255,.07); color: var(--tx);
 }
-.socket::before, .socket::after {
-  content: ""; position: absolute; left: 0; width: 55%; height: max(2px, calc(var(--sh) * 0.1)); background: var(--bg); border-radius: 0 2px 2px 0;
-}
-.socket::before { top: 28%; }
-.socket::after { bottom: 28%; }
-.cable.expired .plug {
-  left: calc(100% - var(--sw) * 1.1); transform: translate(-50%, -50%) rotate(-22deg) translateY(calc(var(--h) * 0.22));
-  background: var(--muted); color: var(--muted); box-shadow: none;
-}
-.cable.expired .socket, .cable.none .socket { border-color: var(--line-2); box-shadow: none; }
-.cable.none .plug { display: none; }
+.strip .cable { --h: clamp(44px, 7vw, 64px); }
+.strip .ends { display: flex; justify-content: space-between; gap: 16px; margin-top: 18px; color: var(--mu); font-size: 14px; }
+.strip .ends b { display: block; color: var(--tx); font-weight: 600; font-size: 15px; }
+.strip .ends > div:last-child { text-align: right; }
+.strip .cable[data-state='ended'] { margin-bottom: calc(var(--h) * .55); }
 .today {
-  position: absolute; left: calc(var(--e) * 100%); top: -2px; transform: translate(-50%, -100%);
-  font: 500 12px var(--mono); color: var(--c); white-space: nowrap;
+  position: absolute; bottom: calc(100% + 12px); white-space: nowrap; font-size: 13px; font-weight: 600; color: #eceff6;
+  left: clamp(1.6rem, calc(var(--plug-x) + var(--pw) * .4), calc(100% - 1.6rem)); transform: translateX(-50%);
+  padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.1);
+}
+.today::after { content: ''; position: absolute; left: 50%; top: 100%; width: 1px; height: 8px; background: rgba(255,255,255,.35); }
+
+/* Draw-in: plug travels to today and the cord pays out behind it */
+@media (prefers-reduced-motion: no-preference) {
+  .cable { animation: draw 1.15s var(--ease) both; }
+  .cable[data-vtn] { animation: none; }
+  @keyframes draw { from { --k: 0; } to { --k: 1; } }
+  @keyframes beam { to { --a: 360deg; } }
 }
 
-/* item page */
-.crumb { margin: 0 0 18px; }
-.crumb a { color: var(--muted); font-size: 14px; }
-.item-head { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
-.item-title { margin: 0; font: 800 clamp(56px, 10vw, 128px)/0.88 var(--display); text-wrap: balance; }
-.item-sub { margin: 0; color: var(--muted); font-size: 18px; }
-.status-line { margin: 22px 0 8px; font-size: 18px; color: var(--muted); }
-.status-line b { color: var(--c); }
-.item-cable { margin: 4px 0 0; padding: 40px 28px 22px; }
-.item-cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; margin-top: 14px; align-items: start; }
-.plate { background: var(--paper); color: var(--paper-ink); border: 1px solid var(--paper-line); border-radius: 16px; padding: 22px 24px; }
-.plate dl { margin: 0; }
-.plate .pr { display: flex; justify-content: space-between; gap: 20px; padding: 10px 0; border-top: 1px solid var(--paper-line); }
-.plate .pr:first-child { border-top: 0; padding-top: 0; }
-.plate dt { color: var(--paper-muted); }
-.plate dd { margin: 0; font-weight: 600; text-align: right; }
-.plate dd.mono { font: 500 14px var(--mono); }
-.plate .notes { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--paper-line); color: var(--paper-muted); }
-.drop {
-  display: flex; flex-direction: column; gap: 6px; align-items: flex-start;
-  border: 1.5px dashed var(--line-2); border-radius: 12px; padding: 18px; color: var(--muted);
-}
-.drop b { color: var(--ink); }
-.drop a { color: var(--active); }
-.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+/* ---------- Bento ---------- */
+.bento { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; }
+.tile { grid-column: span 12; background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-tile); padding: 24px; min-width: 0; }
+.tile > header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.tile h2 { font: 650 20px/1.2 var(--font-display); font-stretch: 115%; letter-spacing: -.01em; }
+.tile header span { color: var(--mu); font-size: 14px; }
+.t-covered { grid-column: span 7; } .t-out { grid-column: span 5; }
+.t-spent { grid-column: span 5; } .t-places { grid-column: span 7; }
 
-.empty { padding: 60px 0; max-width: 520px; }
-.empty h1 { font: 800 56px/0.95 var(--display); margin: 0 0 12px; }
-.empty p { color: var(--muted); }
+/* Hero */
+.hero { position: relative; grid-column: span 12; border-radius: var(--r-hero); padding: clamp(22px, 3.4vw, 40px); background:
+  radial-gradient(60% 90% at 0% 0%, color-mix(in oklab, var(--c) 9%, transparent), transparent 70%), var(--s1);
+  border: 1px solid var(--line); }
+.hero::before { /* the one effect on this view: border beam */
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 2px; pointer-events: none;
+  background: conic-gradient(from var(--a), transparent 0 72%, var(--cg) 88%, #fff 94%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: .9;
+}
+@media (prefers-reduced-motion: no-preference) { .hero::before { animation: beam 7s linear infinite; } }
+@media (prefers-reduced-motion: reduce) { .hero::before { background: var(--line2); opacity: 1; } }
+.hero-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; color: var(--mu); }
+.hero-h { display: flex; align-items: center; gap: clamp(16px, 3vw, 36px); margin: clamp(14px, 2.4vw, 26px) 0 clamp(18px, 3vw, 30px); }
+.big { display: flex; align-items: baseline; gap: .18em; white-space: nowrap; font: 700 clamp(84px, 13vw, 152px)/.82 var(--font-display); font-stretch: 130%; letter-spacing: -.035em; color: var(--tx); }
+.big small { font: 600 clamp(22px, 3vw, 34px)/1 var(--font-display); font-stretch: 115%; letter-spacing: -.01em; color: var(--ct); }
+.lede { font: 500 clamp(18px, 2vw, 24px)/1.3 var(--font-body); max-width: 24ch; color: var(--tx); text-wrap: balance; }
+.lede span { color: var(--mu); display: block; margin-top: 8px; font-size: .78em; }
+.hero-foot { display: flex; align-items: center; justify-content: space-between; gap: 20px 32px; margin-top: 26px; flex-wrap: wrap; }
+.hero-foot .hint { color: var(--mu); max-width: 46ch; }
+.hero-foot .acts { display: flex; gap: 10px; flex-wrap: wrap; }
 
-/* command palette */
-dialog.pal {
-  width: min(560px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--line-2); border-radius: 16px;
-  background: var(--surface); color: var(--ink); margin-top: 12vh; overflow: hidden;
+/* Rows */
+.rows { display: grid; gap: 2px; margin: 0 -10px; }
+.row {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(70px, .9fr) max-content; align-items: center; gap: 18px;
+  padding: 12px 10px; border-radius: var(--r-row);
+  transition: background .2s, transform .45s var(--spring);
 }
-dialog.pal::backdrop { background: rgba(3, 5, 9, 0.6); }
-.pal input {
-  width: 100%; padding: 18px 20px; font: 500 17px var(--body); color: var(--ink);
-  background: transparent; border: 0; border-bottom: 1px solid var(--line); outline: none;
-}
-.pal ul { list-style: none; margin: 0; padding: 8px; max-height: 340px; overflow: auto; }
-.pal li button {
-  width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px;
-  background: none; border: 0; text-align: left;
-}
-.pal li button:hover, .pal li button:focus-visible { background: var(--surface-2); outline: none; }
-.pal .meta { margin-left: auto; color: var(--faint); font-size: 13px; }
-.pal .none { padding: 18px 20px; color: var(--muted); }
+.row:hover { background: var(--s2); transform: translateX(3px); }
+.row:active { transform: scale(.99); }
+.row:hover .cable { filter: brightness(1.18); }
+.r-main { min-width: 0; }
+.r-main b, .r-stat b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.r-main small, .r-stat small { display: block; color: var(--mu); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.r-stat { text-align: right; min-width: 0; }
+.r-stat b { color: var(--ct); }
+.r-cable { padding-bottom: 4px; }
+.cable-ended-pad { padding-bottom: 10px; }
 
-/* responsive */
-@media (max-width: 1040px) {
-  .hero { grid-column: span 12; grid-row: auto; }
-  .stat, .next, .ended-tile, .own { grid-column: span 6; }
-  .spend { grid-column: span 12; }
+/* Spent */
+.money { font: 700 clamp(40px, 5.2vw, 56px)/1 var(--font-display); font-stretch: 125%; letter-spacing: -.03em; }
+.money small { font-size: .5em; letter-spacing: 0; margin-right: 2px; color: var(--mu); }
+.t-spent p.sub { color: var(--mu); margin: 8px 0 20px; }
+.stack { display: flex; gap: 3px; height: 14px; }
+.stack i { display: block; border-radius: 5px; min-width: 6px; transition: transform .4s var(--spring); transform-origin: bottom; }
+.stack i:hover { transform: scaleY(1.5); }
+.legend { margin-top: 16px; display: grid; gap: 8px; }
+.legend li { display: flex; align-items: center; gap: 10px; }
+.legend li i { width: 10px; height: 10px; border-radius: 50%; }
+.legend li b { margin-left: auto; font-weight: 600; }
+.legend li span { color: var(--mu); }
+
+/* Places */
+.places { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.place { padding: 16px; border-radius: 16px; background: var(--s2); border: 1px solid transparent; transition: border-color .2s, transform .45s var(--spring); }
+.place:hover { border-color: var(--line2); transform: translateY(-3px); }
+.place b { display: block; font: 650 17px/1.2 var(--font-display); font-stretch: 112%; }
+.place span { display: block; color: var(--mu); font-size: 13.5px; margin-top: 2px; }
+.place p { font-size: 14px; margin-top: 10px; }
+
+/* Preview-date control (mockup tool) */
+.preview { margin-top: 36px; display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; color: var(--mu); font-size: 14px; }
+.seg { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--s1); border: 1px solid var(--line); }
+.seg button { height: 34px; padding: 0 14px; border-radius: 999px; font-weight: 500; color: var(--mu); transition: background .3s var(--spring), color .2s; }
+.seg button:hover { color: var(--tx); }
+.seg button[aria-pressed='true'] { background: var(--tx); color: var(--bg); }
+
+/* Filters */
+.filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.filters button { height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line2); color: var(--mu); font-weight: 500; transition: background .25s, color .2s, transform .4s var(--spring); }
+.filters button:hover { color: var(--tx); transform: translateY(-1px); }
+.filters button[aria-pressed='true'] { background: var(--tx); color: var(--bg); border-color: var(--tx); }
+
+/* ---------- Item sheet: the only paper ---------- */
+.back { display: inline-flex; align-items: center; gap: 6px; color: var(--mu); margin-bottom: 18px; padding: 6px 10px 6px 4px; border-radius: 999px; transition: color .2s, transform .4s var(--spring); }
+.back:hover { color: var(--tx); transform: translateX(-3px); }
+.paper {
+  --bg: #f7f2e7; --tx: #1d1a14; --mu: #675f50; --faint: #9a917f; --line: rgba(40,30,10,.12); --line2: rgba(40,30,10,.26);
+  --s2: #efe8d9; --s3: #e6decb; --focus: #1d4ed0; --act-t: #1d4ed0; --soon-t: #855000; --end-t: #b4232c; --none-t: #5d5a52;
+  background: var(--bg); color: var(--tx); border-radius: 30px; padding: clamp(20px, 4vw, 52px);
+  box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 40px 80px -30px rgba(0,0,0,.65);
 }
-@media (max-width: 800px) {
-  .shell { grid-template-columns: minmax(0, 1fr); }
-  .rail { position: static; height: auto; flex-direction: row; align-items: center; justify-content: space-between; padding: 14px 16px; border-right: 0; border-bottom: 1px solid var(--line); gap: 12px; }
-  .rail-foot { display: none; }
-  .nav {
-    position: fixed; left: 10px; right: 10px; bottom: 10px; z-index: 20; flex-direction: row; justify-content: space-around;
-    padding: 6px; background: var(--surface); border: 1px solid var(--line-2); border-radius: 18px;
-  }
-  .nav a { flex-direction: column; gap: 3px; padding: 8px 6px; font-size: 12px; flex: 1; align-items: center; border-radius: 12px; }
-  .nav a[aria-current="page"] { box-shadow: none; }
-  .rail .add { order: 3; padding: 9px 14px; }
-  .today-date { display: none; }
-  .page { padding: 20px 16px 110px; }
-  .stat, .next, .ended-tile, .own, .spend { grid-column: span 12; }
-  .hero { padding: 22px 20px; }
-  .item-cols { grid-template-columns: minmax(0, 1fr); }
-  .item-cable { padding: 38px 16px 18px; }
+.sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+.tag { font-size: 14px; color: var(--mu); font-weight: 500; margin-bottom: 10px; display: block; letter-spacing: .02em; }
+.sheet-head h1 { font: 700 clamp(38px, 6vw, 68px)/.98 var(--font-display); font-stretch: 125%; letter-spacing: -.03em; text-wrap: balance; }
+.sheet-head .model { font-size: 18px; color: var(--mu); margin-top: 10px; }
+.sheet-head .acts { display: flex; gap: 10px; flex-wrap: wrap; }
+.paper .btn-solid { background: var(--tx); color: var(--bg); }
+.paper .btn-line:hover { background: var(--s2); }
+.verdict { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 22px 0 0; }
+.verdict .chip { height: 34px; font-size: 15px; background: color-mix(in oklab, var(--c) 16%, transparent); }
+.verdict p { font-weight: 600; font-size: 18px; color: var(--ct); }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.fact { padding: 16px 18px; border-radius: 16px; background: var(--s2); }
+.fact span { display: block; color: var(--mu); font-size: 14px; }
+.fact b { display: block; font: 650 20px/1.25 var(--font-display); font-stretch: 112%; margin-top: 4px; }
+.fact small { color: var(--mu); font-size: 13.5px; }
+.sheet-cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 36px; margin-top: 40px; }
+.sheet-cols h2 { font: 650 22px/1.2 var(--font-display); font-stretch: 115%; margin-bottom: 8px; }
+.spec { display: grid; }
+.spec > div { display: grid; grid-template-columns: 9.5em 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); align-items: center; }
+.spec dt { color: var(--mu); }
+.spec dd { font-weight: 500; display: flex; align-items: center; gap: 8px; min-width: 0; overflow-wrap: anywhere; }
+.spec .mono { letter-spacing: .06em; font-weight: 600; }
+.mini-copy { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: var(--mu); transition: background .2s, transform .35s var(--spring); }
+.mini-copy:hover { background: var(--s3); color: var(--tx); }
+.mini-copy:active { transform: scale(.88); }
+.mini-copy .ic { width: 18px; height: 18px; }
+.drop { display: grid; gap: 6px; place-items: center; text-align: center; padding: 30px 20px; border: 2px dashed var(--line2); border-radius: 20px; width: 100%; color: var(--mu); transition: border-color .2s, background .25s, transform .4s var(--spring); }
+.drop:hover { border-color: var(--tx); background: var(--s2); transform: scale(1.01); }
+.drop b { color: var(--tx); font-size: 17px; }
+.drop .ic { width: 26px; height: 26px; color: var(--tx); margin-bottom: 4px; }
+.notes { margin-top: 28px; color: var(--mu); }
+.notes h3 { font-weight: 600; color: var(--tx); font-size: 17px; margin-bottom: 4px; }
+.pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line); }
+.pager a { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 14px; max-width: 48%; transition: background .2s, transform .4s var(--spring); }
+.pager a:hover { background: var(--s2); }
+.pager a.next { margin-left: auto; text-align: right; }
+.pager a.prev:hover { transform: translateX(-3px); } .pager a.next:hover { transform: translateX(3px); }
+.pager small { display: block; color: var(--mu); font-size: 13.5px; }
+.pager b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Command palette ---------- */
+dialog.palette { padding: 0; border: 1px solid var(--line2); border-radius: 22px; background: var(--s1); color: var(--tx); width: min(600px, calc(100vw - 32px)); margin: 12vh auto auto; box-shadow: 0 40px 100px -20px rgba(0,0,0,.7); overflow: hidden; }
+dialog.palette::backdrop { background: rgba(3,4,8,.6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+@media (prefers-reduced-motion: no-preference) {
+  dialog.palette[open] { animation: pop .38s var(--spring); }
+  dialog.palette[open]::backdrop { animation: fade .25s ease; }
+  @keyframes pop { from { opacity: 0; transform: translateY(-14px) scale(.96); } }
+  @keyframes fade { from { opacity: 0; } }
 }
+.palette .q { display: flex; align-items: center; gap: 12px; padding: 0 18px; border-bottom: 1px solid var(--line); color: var(--mu); }
+.palette input { flex: 1; height: 58px; background: none; border: 0; color: var(--tx); font: 500 17px var(--font-body); outline: none; }
+.palette ul { max-height: min(50vh, 380px); overflow: auto; padding: 8px; }
+.palette li button { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 11px 12px; border-radius: 12px; }
+.palette li button[aria-selected='true'] { background: var(--s3); }
+.palette li small { margin-left: auto; color: var(--mu); }
+.palette .none { padding: 22px; color: var(--mu); text-align: center; }
+.palette .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; }
+
+/* Toast */
+.toast { position: fixed; left: 50%; bottom: 28px; z-index: 60; transform: translate(-50%, 24px); opacity: 0; pointer-events: none; padding: 12px 20px; border-radius: 999px; background: var(--tx); color: var(--bg); font-weight: 600; box-shadow: 0 16px 40px -10px rgba(0,0,0,.5); transition: transform .5s var(--spring), opacity .25s; max-width: calc(100vw - 32px); }
+.toast.on { transform: translate(-50%, 0); opacity: 1; }
+
+/* View transitions */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; animation-timing-function: var(--ease); }
+::view-transition-group(cable) { animation-duration: .55s; animation-timing-function: var(--ease); }
 @media (prefers-reduced-motion: reduce) {
-  .beam::after, .wire, .bars .b { animation: none; }
-  * { scroll-behavior: auto !important; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1000px) {
+  .t-covered, .t-out, .t-spent, .t-places { grid-column: span 12; }
+  .sheet-cols { grid-template-columns: 1fr; gap: 32px; }
+  .find { min-width: 0; } .find span { display: none; }
+}
+@media (max-width: 760px) {
+  .nav, .bar .add { display: none; }
+  .bar-in { padding: 0 16px; height: 56px; }
+  .find { padding: 0; width: 40px; min-width: 0; justify-content: center; border: 0; } .find kbd { display: none; }
+  main { padding: 20px 16px 130px; }
+  .tile { padding: 20px 18px; }
+  .hero-h { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .lede { max-width: 30ch; }
+  .strip { padding-top: 54px; }
+  .hero-foot .acts { width: 100%; } .hero-foot .acts .btn { flex: 1; }
+  .row { grid-template-columns: minmax(0, 1fr) minmax(0, auto); grid-template-areas: 'main stat' 'cable cable'; gap: 8px 12px; }
+  .row .r-main { grid-area: main; } .row .r-stat { grid-area: stat; } .row .r-cable { grid-area: cable; }
+  .facts { grid-template-columns: 1fr; }
+  .fact { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px 12px; }
+  .fact small { grid-column: 1 / -1; }
+  .fact b { margin-top: 0; text-align: right; }
+  .spec > div { grid-template-columns: 8em 1fr; }
+  .pager a { max-width: 49%; padding: 8px 4px; }
+  .toast { bottom: 108px; }
+  .dock {
+    display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; z-index: 40; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom));
+    padding: 6px; border-radius: 26px; background: color-mix(in oklab, var(--s1) 86%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4);
+    border: 1px solid var(--line2); box-shadow: 0 18px 40px -12px rgba(0,0,0,.55);
+  }
+  .dock a, .dock button { display: grid; place-items: center; gap: 2px; padding: 8px 2px 6px; border-radius: 20px; font-size: 12px; font-weight: 500; color: var(--mu); transition: background .25s, color .2s, transform .4s var(--spring); }
+  .dock a[aria-current='page'] { color: var(--tx); background: var(--s3); }
+  .dock .fab { color: var(--bg); background: var(--tx); width: 56px; height: 56px; padding: 0; margin: -16px auto 0; border-radius: 50%; align-content: center; box-shadow: 0 10px 24px -6px rgba(0,0,0,.5); }
+  .hero-foot .acts .btn-solid { order: -1; }
+  .dock .fab .ic { width: 26px; height: 26px; }
+  .dock a:active, .dock button:active { transform: scale(.9); }
+}
+@media (max-width: 420px) {
+  .big { font-size: clamp(76px, 25vw, 100px); }
+  .money { font-size: 40px; }
 }
 </style>
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
-<div class="shell">
-  <aside class="rail">
-    <a class="wordmark" href="#overview" aria-label="Benchlog, home">Bench<span>log</span></a>
-    <nav class="nav" id="nav" aria-label="Main">
-      <a href="#overview" data-r="overview"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>Overview</a>
-      <a href="#items" data-r="items"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Items</a>
-      <a href="#timeline" data-r="timeline"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h9M7 12h13M5 18h8"/></svg>Timeline</a>
-      <a href="#places" data-r="places"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Places</a>
-      <a href="#backup" data-r="backup"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Backup</a>
-    </nav>
-    <a class="btn primary add" href="#add">Add item</a>
-    <div class="rail-foot">
-      <p class="rail-note">Saved on this device. Back up from Backup.</p>
-      <button class="theme" id="theme" type="button" aria-pressed="false">Switch to light theme</button>
-    </div>
-  </aside>
-  <main id="main" class="page" tabindex="-1">
-    <div class="topbar">
-      <button class="search" id="open-pal" type="button" aria-label="Search items">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>
-        <span>Search name, serial, store, place</span>
-        <kbd>Ctrl K</kbd>
-      </button>
-      <span class="today-date" id="today"></span>
-    </div>
-    <div id="view"></div>
-  </main>
-</div>
+<a class="skip" href="#view">Skip to content</a>
 
-<dialog class="pal" id="pal" aria-label="Search items">
-  <input id="pal-q" type="text" placeholder="Search name, serial, store, place" autocomplete="off" aria-label="Search items">
-  <ul id="pal-list"></ul>
+<!-- Cable parts, drawn once, reused everywhere -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="plug-g">
+      <rect x="4" y="3.5" width="37" height="33" rx="10" style="fill:var(--plug);stroke:var(--plug-edge)" stroke-width="1.6"/>
+      <rect x="10" y="10" width="5" height="20" rx="2.5" style="fill:var(--plug-edge)" opacity=".55"/>
+      <rect x="18" y="10" width="5" height="20" rx="2.5" style="fill:var(--plug-edge)" opacity=".35"/>
+      <rect x="40" y="11.5" width="18" height="3.2" rx="1.6" style="fill:var(--pin)"/>
+      <rect x="40" y="25.3" width="18" height="3.2" rx="1.6" style="fill:var(--pin)"/>
+    </g>
+    <g id="socket-g">
+      <rect x="2" y="3.5" width="40" height="33" rx="10" style="fill:var(--sock);stroke:var(--sock-edge)" stroke-width="1.6"/>
+      <rect class="slot" x="2.8" y="11.5" width="15" height="3.2" rx="1.6"/>
+      <rect class="slot" x="2.8" y="25.3" width="15" height="3.2" rx="1.6"/>
+      <circle cx="31.5" cy="20" r="2.2" style="fill:var(--sock-edge)"/>
+    </g>
+    <g id="mark-g">
+      <rect x="0" y="4" width="10" height="12" rx="3" fill="currentColor"/>
+      <rect x="9" y="7" width="7" height="2" rx="1" fill="currentColor"/><rect x="9" y="11" width="7" height="2" rx="1" fill="currentColor"/>
+      <rect x="21" y="2" width="9" height="16" rx="3.5" fill="none" stroke="currentColor" stroke-width="2"/>
+    </g>
+  </defs>
+</svg>
+
+<header class="bar">
+  <div class="bar-in">
+    <a class="brand" href="#overview" aria-label="Benchlog, Overview"><svg viewBox="0 0 30 20" aria-hidden="true"><use href="#mark-g"/></svg>Benchlog</a>
+    <nav class="nav" aria-label="Main" id="nav">
+      <span class="pill" aria-hidden="true"></span>
+      <a href="#overview" data-nav="overview">Overview</a>
+      <a href="#items" data-nav="items">Items</a>
+      <a href="#timeline" data-nav="timeline" data-stub>Timeline</a>
+      <a href="#places" data-nav="places" data-stub>Places</a>
+      <a href="#backup" data-nav="backup" data-stub>Backup</a>
+    </nav>
+    <div class="tools">
+      <button class="find" id="open-find" aria-label="Search items and actions">
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span>Search items</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme" id="theme" aria-label="Switch colour theme">
+        <svg class="ic sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="ic moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+      </button>
+      <button class="btn btn-solid btn-sm add" data-stub-btn>
+        <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add item
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="view" tabindex="-1"></main>
+
+<nav class="dock" aria-label="Main">
+  <a href="#overview" data-nav="overview"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="10" rx="2"/><rect x="13" y="3" width="8" height="6" rx="2"/><rect x="13" y="11" width="8" height="10" rx="2"/><rect x="3" y="15" width="8" height="6" rx="2"/></svg>Overview</a>
+  <a href="#items" data-nav="items"><svg class="ic" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>Items</a>
+  <button class="fab" data-stub-btn aria-label="Add item"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  <a href="#timeline" data-nav="timeline" data-stub><svg class="ic" viewBox="0 0 24 24"><path d="M3 12h18M7 7v10M13 5v14M18 9v6"/></svg>Timeline</a>
+  <a href="#places" data-nav="places" data-stub><svg class="ic" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Places</a>
+</nav>
+
+<dialog class="palette" id="palette" aria-label="Search items and actions">
+  <div class="q">
+    <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="text" placeholder="Search items, or type an action" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="results">
+    <kbd>Esc</kbd>
+  </div>
+  <ul id="results" role="listbox"></ul>
 </dialog>
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script>
-(function () {
-  var DAY = 86400000;
-  var CAT = { Laptop: '#66a3ff', Tablet: '#4fd1c5', Phone: '#8bd450', Monitor: '#b48cff', Camera: '#ff9f43', Audio: '#ff7eb6', Storage: '#7fd7ff', Charger: '#e9f0ea', Cable: '#c8e65a', Other: '#9bb0a6' };
-  var CATS = Object.keys(CAT);
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const DAY = 864e5;
 
-  function iso(monthsAgo, extra) {
-    var d = new Date();
-    d.setMonth(d.getMonth() - monthsAgo);
-    d.setDate(d.getDate() + (extra || 0));
-    var m = String(d.getMonth() + 1).padStart(2, '0');
-    var dd = String(d.getDate()).padStart(2, '0');
-    return d.getFullYear() + '-' + m + '-' + dd;
-  }
-  var ITEMS = [
-    { tag: 1, name: 'Work laptop', cat: 'Laptop', brand: 'Lenovo', model: 'ThinkPad T14', serial: 'PF3K91LX', date: iso(10), price: 92000, store: 'Croma', months: 36, qty: 1, loc: 'Desk', notes: 'Bought with the 3-year onsite plan. Invoice is in the email from Croma.' },
-    { tag: 2, name: 'Gaming tablet', cat: 'Tablet', brand: 'Lenovo', model: 'Legion Y700', serial: 'HA2201B7', date: iso(5), price: 32999, store: 'Amazon', months: 12, qty: 1, loc: 'Bag', notes: '' },
-    { tag: 3, name: 'Main monitor', cat: 'Monitor', brand: 'Dell', model: 'U2723QE', serial: 'CN0W8M44', date: iso(11, 12), price: 54500, store: 'Dell store', months: 12, qty: 1, loc: 'Desk', notes: 'USB-C hub on the back powers the laptop. Ask Dell for a panel swap if dead pixels show up.' },
-    { tag: 4, name: 'Mirrorless body', cat: 'Camera', brand: 'Sony', model: 'A7 III', serial: '4829113', date: iso(30), price: 148000, store: 'Sony Center', months: 24, qty: 1, loc: 'Dry cabinet', notes: '' },
-    { tag: 5, name: 'USB-C to HDMI cable', cat: 'Cable', brand: 'Anker', model: '2 m 4K', serial: '', date: iso(3), price: 1299, store: 'Amazon', months: 18, qty: 2, loc: 'Cable drawer', notes: '' },
-    { tag: 6, name: 'GaN charger', cat: 'Charger', brand: 'Ugreen', model: '100 W 4-port', serial: '', date: iso(14), price: 3499, store: 'Amazon', months: 12, qty: 1, loc: 'Desk', notes: '' },
-    { tag: 7, name: 'Desk lamp', cat: 'Other', brand: 'Xiaomi', model: 'Mi LED 1S', serial: '', date: iso(2), price: 2499, store: 'Mi Home', months: 0, qty: 1, loc: '', notes: '' }
+  /* ---------- Data: the seven items from src/sample.ts, dates relative to the real today ---------- */
+  const anchor = (monthsAgo, extra = 0) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setMonth(d.getMonth() - monthsAgo); d.setDate(d.getDate() + extra); return d; };
+  const RAW = [
+    ['Work laptop',         'Laptop',  'Lenovo', 'ThinkPad T14',  'PF3K91LX', 10, 0,  92000,  'Croma',       36, 'Desk',         1],
+    ['Gaming tablet',       'Tablet',  'Lenovo', 'Legion Y700',   'HA2201B7',  5, 0,  32999,  'Amazon',      12, 'Bag',          1],
+    ['Main monitor',        'Monitor', 'Dell',   'U2723QE',       'CN0W8M44', 11, 12, 54500,  'Dell store',  12, 'Desk',         1],
+    ['Mirrorless body',     'Camera',  'Sony',   'A7 III',        '4829113',  30, 0,  148000, 'Sony Center', 24, 'Dry cabinet',  1],
+    ['USB-C to HDMI cable', 'Cable',   'Anker',  '2 m 4K',        '',          3, 0,  1299,   'Amazon',      18, 'Cable drawer', 2],
+    ['GaN charger',         'Charger', 'Ugreen', '100 W 4-port',  '',         14, 0,  3499,   'Amazon',      12, 'Desk',         1],
+    ['Desk lamp',           'Other',   'Xiaomi', 'Mi LED 1S',     '',          2, 0,  2499,   'Mi Home',      0, '',             1],
   ];
+  const ITEMS = RAW.map((r, i) => ({
+    id: i + 1, tag: 'BL-' + String(i + 1).padStart(4, '0'),
+    name: r[0], category: r[1], brand: r[2], model: r[3], serial: r[4], bought: anchor(r[5], r[6]),
+    price: r[7], store: r[8], months: r[9], location: r[10], qty: r[11], files: 0, notes: '',
+  }));
 
-  function parse(s) { return new Date(s + 'T00:00:00'); }
+  /* ---------- Preview date (mockup tool, so every status can be seen) ---------- */
+  let offset = 0;
+  const now = () => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + offset); return d; };
+  const daysBetween = (a, b) => Math.round((b - a) / DAY);
+
   function warranty(it) {
-    if (!it.months || !it.date) return { status: 'none', end: null, left: 0, elapsed: 0 };
-    var start = parse(it.date), end = new Date(start);
-    end.setMonth(end.getMonth() + it.months);
-    var n = new Date(), today = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-    var total = Math.max(1, Math.round((end - start) / DAY));
-    var left = Math.round((end - today) / DAY);
-    var elapsed = Math.min(1, Math.max(0, 1 - left / total));
-    return { status: left < 0 ? 'expired' : left <= 30 ? 'soon' : 'active', end: end, left: left, elapsed: elapsed };
+    if (!it.months) return { status: 'none', left: null };
+    const T = now(); const end = new Date(it.bought); end.setMonth(end.getMonth() + it.months);
+    const left = daysBetween(T, end);
+    const total = end - it.bought; const frac = Math.min(.97, Math.max(.03, (T - it.bought) / total));
+    const status = left < 0 ? 'ended' : left <= 30 ? 'soon' : 'active';
+    return { status, left, end, frac };
   }
-  ITEMS.forEach(function (i) { i.w = warranty(i); });
+  const enriched = () => ITEMS.map(it => ({ ...it, w: warranty(it) }));
 
-  function dayFmt(d) { if (!d) return ''; if (typeof d === 'string') d = parse(d); return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); }
-  function money(n) { return n == null ? '' : new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n); }
-  function short(n) {
-    if (n >= 1e7) return '₹' + (n / 1e7).toFixed(1) + ' Cr';
-    if (n >= 1e5) return '₹' + (n / 1e5).toFixed(1) + ' L';
-    if (n >= 1e3) return '₹' + (n / 1e3).toFixed(n >= 1e4 ? 0 : 1) + ' K';
-    return '₹' + n;
+  /* ---------- Formatting ---------- */
+  const fdate = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const money = n => '₹' + n.toLocaleString('en-IN');
+  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+  function amount(days) { // { n, unit }
+    const d = Math.abs(days);
+    if (d <= 60) return { n: d, unit: d === 1 ? 'day' : 'days' };
+    const m = Math.round(d / 30.44); return { n: m, unit: m === 1 ? 'month' : 'months' };
   }
-  function tagOf(n) { return 'BL-' + String(n).padStart(4, '0'); }
-  function leftText(it) {
-    var w = it.w;
-    if (w.status === 'none') return 'No warranty';
-    if (w.status === 'expired') { var n = -w.left; return n === 0 ? 'Ended today' : 'Ended ' + n + ' day' + (n === 1 ? '' : 's') + ' ago'; }
-    if (w.left === 0) return 'Ends today';
-    if (w.left < 90) return w.left + ' day' + (w.left === 1 ? '' : 's') + ' left';
-    var mo = Math.round(w.left / 30.4);
-    if (mo < 24) return mo + ' months left';
-    return (w.left / 365).toFixed(1) + ' years left';
+  const amountText = d => { const a = amount(d); return a.n + ' ' + a.unit; };
+  function stat(w) { // [line one (coloured, in words), line two]
+    if (w.status === 'none') return ['No warranty', 'Nothing to track'];
+    if (w.status === 'ended') return ['Ended ' + amountText(w.left) + ' ago', 'Ended ' + fdate(w.end)];
+    const one = w.left === 0 ? 'Ends today' : amountText(w.left) + ' left';
+    return [one, (w.status === 'soon' ? 'Ending soon: ' : 'Covered until ') + fdate(w.end)];
   }
-  function colorOf(status) { return status === 'active' ? 'var(--active)' : status === 'soon' ? 'var(--soon)' : status === 'expired' ? 'var(--ended)' : 'var(--none)'; }
-  function wire(it) { return CAT[it.cat]; }
-  function link(it) { return '#item-' + it.tag; }
+  const WORD = { active: 'Covered', soon: 'Ending soon', ended: 'Ended', none: 'No warranty' };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-  function cable(it, size) {
-    var w = it.w, e = w.status === 'none' ? 0 : w.elapsed;
-    var live = w.status === 'active' || w.status === 'soon';
-    return '<div class="cable ' + (size || '') + ' ' + w.status + '" style="--e:' + e.toFixed(4) + ';--c:' + colorOf(w.status) + '" role="img" aria-label="' + it.name + ': ' + leftText(it) + '">' +
-      '<div class="run"><i class="track"></i>' + (live ? '<i class="wire"></i>' : '') + '<i class="plug"></i>' +
-      (size === 'lg' && live ? '<span class="today">Today</span>' : '') + '</div><i class="socket"></i></div>';
+  /* ---------- Components ---------- */
+  function cable(it, { h, extra = '' } = {}) {
+    const w = it.w; const p = w.status === 'ended' ? 1 : w.status === 'none' ? 0 : w.frac;
+    return `<span class="cable" data-id="${it.id}" data-state="${w.status}" style="${h ? `--h:${h}px;` : ''}--p:${p.toFixed(3)}" aria-hidden="true">` +
+      `<span class="cord"></span><span class="rail r1"></span><span class="rail r2"></span>` +
+      `<svg class="plug" viewBox="0 0 60 40"><use href="#plug-g"/></svg><svg class="socket" viewBox="0 0 44 40"><use href="#socket-g"/></svg>${extra}</span>`;
   }
-  function tag(it, big) { return '<span class="tag' + (big ? ' big' : '') + '" style="--wire:' + wire(it) + '">' + tagOf(it.tag) + '</span>'; }
-
   function row(it) {
-    var w = it.w;
-    return '<li class="row" style="--c:' + colorOf(w.status) + '"><div class="row-top">' + tag(it) +
-      '<a class="row-name" href="' + link(it) + '">' + it.name + (it.qty > 1 ? ' ×' + it.qty : '') + '</a>' +
-      '<span class="row-left">' + leftText(it) + '</span></div>' + cable(it, 'sm') + '</li>';
+    const [a, b] = stat(it.w);
+    return `<li><a class="row" href="#item-${it.id}" data-status="${it.w.status}" aria-label="${esc(it.name)}, ${esc(a)}">` +
+      `<span class="r-main"><b>${esc(it.name)}</b><small>${esc(it.brand + ' ' + it.model)}</small></span>` +
+      `<span class="r-cable ${it.w.status === 'ended' ? 'cable-ended-pad' : ''}">${cable(it, { h: 26 })}</span>` +
+      `<span class="r-stat"><b>${esc(a)}</b><small>${esc(b)}</small></span></a></li>`;
   }
+  const icon = (d, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+  const I = {
+    copy: icon('<rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15"/>'),
+    plus: icon('<path d="M12 5v14M5 12h14"/>'),
+    left: icon('<path d="m15 18-6-6 6-6"/>'), right: icon('<path d="m9 18 6-6-6-6"/>'),
+    file: icon('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 17v-5M9.5 14.5 12 12l2.5 2.5"/>'),
+    open: icon('<path d="M7 17 17 7M8 7h9v9"/>'),
+    edit: icon('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/>'),
+  };
 
-  /* views */
+  /* ---------- Views ---------- */
   function overview() {
-    var live = ITEMS.filter(function (i) { return i.w.status === 'active' || i.w.status === 'soon'; }).sort(function (a, b) { return a.w.left - b.w.left; });
-    var ended = ITEMS.filter(function (i) { return i.w.status === 'expired'; }).sort(function (a, b) { return b.w.left - a.w.left; });
-    var none = ITEMS.filter(function (i) { return i.w.status === 'none'; }).length;
-    var units = ITEMS.reduce(function (n, i) { return n + i.qty; }, 0);
-    var worth = ITEMS.reduce(function (n, i) { return n + (i.price || 0) * i.qty; }, 0);
-    var hero = live[0], rest = live.slice(1, 4);
+    const list = enriched();
+    const live = list.filter(i => ['active', 'soon'].includes(i.w.status)).sort((a, b) => a.w.end - b.w.end);
+    const gone = list.filter(i => ['ended', 'none'].includes(i.w.status)).sort((a, b) => (a.w.end || 0) - (b.w.end || 0)).reverse();
+    const hero = live[0] || gone[0];
+    const rest = live.slice(1);
+    const w = hero.w; const a = amount(Math.abs(w.left ?? 0));
+    const inv = hero.files ? '' : 'No invoice is attached yet. A claim goes faster when you have it.';
 
-    var byCat = CATS.map(function (c) { return { c: c, n: ITEMS.filter(function (i) { return i.cat === c; }).reduce(function (n, i) { return n + i.qty; }, 0) }; })
-      .filter(function (x) { return x.n > 0; }).sort(function (a, b) { return b.n - a.n; });
-    var maxCat = Math.max.apply(null, byCat.map(function (x) { return x.n; }));
-    var years = {};
-    ITEMS.forEach(function (i) { var y = i.date.slice(0, 4); years[y] = (years[y] || 0) + i.price * i.qty; });
-    var spend = Object.keys(years).sort().map(function (y) { return [y, years[y]]; });
-    var maxSpend = Math.max.apply(null, spend.map(function (s) { return s[1]; }));
+    const heroHtml = `
+    <section class="hero" data-status="${w.status}" aria-labelledby="hero-h">
+      <div class="hero-top"><span class="chip"><i></i>${WORD[w.status]}</span><span>${esc(hero.tag)}, ${esc(hero.brand + ' ' + hero.model)}</span></div>
+      <h1 class="hero-h" id="hero-h">
+        <span class="big" aria-hidden="true">${a.n}<small>${a.unit}</small></span>
+        <span class="lede"><span class="sr">${amountText(w.left)} left on </span>${w.status === 'ended' ? 'The ' + esc(hero.name) + ' is out of warranty.' : (w.left === 0 ? 'Today is the last day of' : 'left on') + ' the ' + esc(hero.name) + '’s warranty.'}<span>Ends ${fdate(w.end)}</span></span>
+      </h1>
+      ${strip(hero)}
+      <div class="hero-foot">
+        <p class="hint">${inv || 'Everything is on file for this one.'}</p>
+        <div class="acts">
+          ${hero.files ? '' : `<a class="btn btn-line" href="#item-${hero.id}">${I.file}Add the invoice</a>`}
+          <button class="btn btn-line" data-copy="${esc(hero.serial)}">${I.copy}Copy serial number</button>
+          <a class="btn btn-solid" href="#item-${hero.id}">Open item${I.open}</a>
+        </div>
+      </div>
+    </section>`;
 
-    var d = hero.w.left, big = d < 120 ? d : Math.round(d / 30.4), unit = d < 120 ? (d === 1 ? 'day' : 'days') : 'months';
+    const spentTotal = ITEMS.reduce((s, i) => s + i.price, 0);
+    const cats = [['Camera', 148000], ['Laptop', 92000], ['Monitor', 54500], ['Tablet', 32999]];
+    const small = spentTotal - cats.reduce((s, c) => s + c[1], 0);
+    const tints = ['#3d7bff', '#6b9bff', '#97b8ff', '#c1d3ff', '#5a6280'];
+    const parts = [...cats, ['Charger, cable and lamp', small]];
+    const stack = parts.map((p, i) => `<i style="flex:${p[1]};background:${tints[i]}" title="${esc(p[0])} ${money(p[1])}"></i>`).join('');
+    const legend = parts.map((p, i) => `<li><i style="background:${tints[i]}"></i><span>${esc(p[0])}</span><b>${money(p[1])}</b></li>`).join('');
 
-    return '' +
-    '<div class="bento">' +
-      '<section class="tile hero beam" style="--c:' + colorOf(hero.w.status) + '" aria-labelledby="hero-title">' +
-        '<p class="kicker">Next warranty to run out</p>' +
-        '<h1 class="hero-title" id="hero-title"><a href="' + link(hero) + '">' + hero.name + '</a></h1>' +
-        '<p class="hero-line"><span>runs out in</span><span><b class="hero-num" data-count="' + big + '">' + big + '</b></span><span class="hero-unit">' + unit + '</span></p>' +
-        cable(hero, 'lg') +
-        '<div class="dates"><div>Bought<b>' + dayFmt(hero.date) + '</b></div><div>Warranty ends<b>' + dayFmt(hero.w.end) + '</b></div></div>' +
-      '</section>' +
+    const places = {};
+    ITEMS.forEach(i => { (places[i.location || 'No place set'] ||= []).push(i); });
+    const placeHtml = Object.entries(places).sort((x, y) => y[1].length - x[1].length).map(([n, arr]) => {
+      const units = arr.reduce((s, i) => s + i.qty, 0);
+      return `<div class="place"><b>${esc(n)}</b><span>${plural(units, 'unit')}</span><p>${arr.map(i => esc(i.name)).join(', ')}</p></div>`;
+    }).join('');
 
-      '<section class="tile stat" aria-labelledby="t-bench">' +
-        '<h2 id="t-bench">On the bench</h2>' +
-        '<div class="big"><span data-count="' + units + '">' + units + '</span><small>units in ' + ITEMS.length + ' items</small></div>' +
-        '<p>Worth <b style="color:var(--ink)" data-count="' + worth + '" data-fmt="inr">' + money(worth) + '</b></p>' +
-        '<div class="pills"><span class="pill" style="--c:var(--active)"><i></i>' + live.length + ' under warranty</span><span class="pill" style="--c:var(--ended)"><i></i>' + ended.length + ' unplugged</span><span class="pill" style="--c:var(--none)"><i></i>' + none + ' no warranty</span></div>' +
-      '</section>' +
-
-      '<section class="tile next" aria-labelledby="t-next">' +
-        '<div class="tile-head"><h2 id="t-next">Running out next</h2><a href="#items">All items</a></div>' +
-        '<ul class="rows">' + rest.map(row).join('') + '</ul>' +
-      '</section>' +
-
-      '<section class="tile ended-tile" aria-labelledby="t-ended">' +
-        '<div class="tile-head"><h2 id="t-ended">Unplugged</h2><a href="#items">See all ended</a></div>' +
-        '<ul class="rows">' + ended.map(row).join('') + '</ul>' +
-      '</section>' +
-
-      '<section class="tile own" aria-labelledby="t-own">' +
-        '<h2 id="t-own">What you own</h2>' +
-        '<ul class="bars">' + byCat.map(function (x) { return '<li><span>' + x.c + '</span><span class="t"><span class="b" style="--wire:' + CAT[x.c] + ';width:' + (x.n / maxCat * 100) + '%"></span></span><span class="v">' + x.n + '</span></li>'; }).join('') + '</ul>' +
-      '</section>' +
-
-      '<section class="tile spend" aria-labelledby="t-spend">' +
-        '<h2 id="t-spend">What you spent</h2>' +
-        '<ul class="bars">' + spend.map(function (s) { return '<li><span>' + s[0] + '</span><span class="t"><span class="b" style="--wire:var(--active);width:' + (s[1] / maxSpend * 100) + '%"></span></span><span class="v">' + short(s[1]) + '</span></li>'; }).join('') + '</ul>' +
-      '</section>' +
-    '</div>';
+    const nUnits = ITEMS.reduce((s, i) => s + i.qty, 0);
+    return `
+    <div class="bento">
+      ${heroHtml}
+      <section class="tile t-covered" aria-labelledby="h-cov">
+        <header><h2 id="h-cov">Still covered</h2><span>${plural(rest.length, 'more item')}, soonest first</span></header>
+        ${rest.length ? `<ul class="rows">${rest.map(row).join('')}</ul>` : '<p style="color:var(--mu)">Nothing else is covered right now.</p>'}
+      </section>
+      <section class="tile t-out" aria-labelledby="h-out">
+        <header><h2 id="h-out">Not covered</h2><span>${plural(gone.filter(g => g.id !== hero.id).length, 'item')}</span></header>
+        <ul class="rows">${gone.filter(g => g.id !== hero.id).map(row).join('')}</ul>
+      </section>
+      <section class="tile t-spent" aria-labelledby="h-spent">
+        <header><h2 id="h-spent">Spent</h2><span>${plural(ITEMS.length, 'item')}, ${plural(nUnits, 'unit')}</span></header>
+        <div class="money"><small>₹</small>${spentTotal.toLocaleString('en-IN')}</div>
+        <p class="sub">Across everything on the bench. The camera is the biggest share.</p>
+        <div class="stack" role="img" aria-label="Spend by category">${stack}</div>
+        <ul class="legend">${legend}</ul>
+      </section>
+      <section class="tile t-places" aria-labelledby="h-pl">
+        <header><h2 id="h-pl">Where things are</h2><span>${Object.keys(places).length} places</span></header>
+        <div class="places">${placeHtml}</div>
+      </section>
+    </div>
+    <div class="preview">
+      <span>Mockup only: move today forward to see every status.</span>
+      <div class="seg" role="group" aria-label="Preview date">
+        ${[[0, 'Today'], [21, 'In 3 weeks'], [100, 'In 100 days']].map(([v, l]) => `<button data-offset="${v}" aria-pressed="${offset === v}">${l}</button>`).join('')}
+      </div>
+      ${offset ? `<span>Showing ${fdate(now())}</span>` : ''}
+    </div>`;
   }
 
-  function plateRow(k, v, mono) { return v ? '<div class="pr"><dt>' + k + '</dt><dd' + (mono ? ' class="mono"' : '') + '>' + v + '</dd></div>' : ''; }
-
-  function itemView(it) {
-    var w = it.w;
-    return '' +
-    '<article style="--c:' + colorOf(w.status) + '">' +
-      '<p class="crumb"><a href="#items">All items</a></p>' +
-      '<div class="item-head">' + tag(it, true) +
-        '<h1 class="item-title">' + it.name + '</h1>' +
-        '<p class="item-sub">' + ([it.brand, it.model].filter(Boolean).join(' ') || it.cat) + '</p></div>' +
-      '<p class="status-line"><b>' + leftText(it) + '</b>' + (w.end ? ', ' + (w.status === 'expired' ? 'ended ' : 'ends ') + dayFmt(w.end) : '') + '</p>' +
-      '<section class="tile item-cable" aria-label="Warranty">' + cable(it, 'lg') +
-        '<div class="dates"><div>Bought<b>' + dayFmt(it.date) + '</b></div><div>Warranty ends<b>' + (w.end ? dayFmt(w.end) : 'No warranty') + '</b></div></div></section>' +
-      '<div class="item-cols">' +
-        '<section class="plate" aria-labelledby="specs"><h2 id="specs" class="sr">Details</h2><dl>' +
-          plateRow('Category', it.cat) + plateRow('Brand', it.brand) + plateRow('Model', it.model) + plateRow('Serial', it.serial, true) +
-          plateRow('Quantity', it.qty > 1 ? String(it.qty) : '') + plateRow('Bought', dayFmt(it.date)) + plateRow('Price', money(it.price)) +
-          plateRow('From', it.store) + plateRow('Warranty', it.months ? it.months + ' months' : 'None') + plateRow('Kept in', it.loc) +
-        '</dl>' + (it.notes ? '<p class="notes">' + it.notes + '</p>' : '') + '</section>' +
-        '<section class="tile" aria-labelledby="files"><h2 id="files">Photos and papers</h2>' +
-          '<div class="drop"><b>Nothing attached yet</b><span><a href="#add">Add the invoice or a photo</a> so a warranty claim is one tap away.</span></div></section>' +
-      '</div>' +
-      '<div class="actions"><a class="btn primary" href="#add">Edit item</a><button class="btn danger" type="button">Delete</button></div>' +
-    '</article>';
+  function strip(it) {
+    const w = it.w; const dated = `<div class="ends"><div><span>Bought</span><b>${fdate(it.bought)}</b></div>` +
+      (w.status === 'none' ? '' : `<div><span>${w.status === 'ended' ? 'Ended' : 'Warranty ends'}</span><b>${fdate(w.end)}</b></div>`) + '</div>';
+    const label = w.status === 'active' || w.status === 'soon' ? '<span class="today">Today</span>' : '';
+    return `<div class="strip" data-status="${w.status}" role="img" aria-label="${esc(stat(w)[0])}. ${w.end ? 'Ends ' + fdate(w.end) : ''}">` +
+      cable(it, { extra: label }) + dated + '</div>';
   }
 
-  function other(name) {
-    return '<div class="empty"><h1>Not in this mockup</h1><p>This preview covers the Overview and one item page. ' + (name ? 'The ' + name + ' page' : 'That page') + ' will get the same treatment once you approve the direction.</p><a class="btn primary" href="#overview">Back to Overview</a></div>';
+  function itemPage(id) {
+    const list = enriched(); const idx = list.findIndex(i => i.id === id); const it = list[idx]; const w = it.w;
+    const [s1, s2] = stat(w);
+    const prev = list[idx - 1], next = list[idx + 1];
+    const fact = (k, v, sub) => `<div class="fact"><span>${k}</span><b>${v}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
+    const spec = [
+      ['Asset tag', it.tag], ['Category', it.category], ['Brand', it.brand], ['Model', it.model],
+      ['Serial number', it.serial ? `<span class="mono">${esc(it.serial)}</span><button class="mini-copy" data-copy="${esc(it.serial)}" aria-label="Copy serial number">${I.copy}</button>` : 'Not recorded'],
+      ['Store', it.store], ['Price', money(it.price)], ['Quantity', String(it.qty)], ['Location', it.location || 'No place set'],
+    ].map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+    const pager = (x, cls, dir) => x ? `<a class="${cls}" href="#item-${x.id}">${dir === 'prev' ? I.left : ''}<span><small>${dir === 'prev' ? 'Previous' : 'Next'}</small><b>${esc(x.name)}</b></span>${dir === 'next' ? I.right : ''}</a>` : '<span></span>';
+    return `
+    <a class="back" href="#overview">${I.left}Overview</a>
+    <article class="paper" data-status="${w.status}" aria-labelledby="item-h">
+      <div class="sheet-head">
+        <div>
+          <span class="tag">${it.tag}, ${esc(it.category)}</span>
+          <h1 id="item-h">${esc(it.name)}</h1>
+          <p class="model">${esc(it.brand + ' ' + it.model)}</p>
+        </div>
+        <div class="acts">
+          <button class="btn btn-line" data-stub-btn>${I.edit}Edit item</button>
+          <button class="btn btn-solid" data-copy="${esc(it.serial)}" ${it.serial ? '' : 'disabled style="opacity:.4;pointer-events:none"'}>${I.copy}Copy serial number</button>
+        </div>
+      </div>
+      ${strip(it)}
+      <div class="verdict"><span class="chip"><i></i>${WORD[w.status]}</span><p>${esc(s1)}</p></div>
+      <div class="facts">
+        ${fact('Bought', fdate(it.bought), 'at ' + esc(it.store))}
+        ${fact('Warranty', it.months ? plural(it.months, 'month') : 'None', it.months ? 'from the purchase date' : 'None recorded for this item')}
+        ${fact(w.status === 'ended' ? 'Ended' : 'Ends', w.end ? fdate(w.end) : 'Not applicable', w.status === 'none' ? '' : esc(w.status === 'ended' ? s1 : s2))}
+      </div>
+      <div class="sheet-cols">
+        <section aria-labelledby="h-spec"><h2 id="h-spec">Details</h2><dl class="spec">${spec}</dl></section>
+        <section aria-labelledby="h-doc"><h2 id="h-doc">Invoice and photos</h2>
+          <button class="drop" data-stub-btn>${I.file}<b>Add the invoice</b><span>Drop a PDF or photo here, up to 4 MB each. Keep it for claims.</span></button>
+          <div class="notes"><h3>Notes</h3><p>No notes yet.</p></div>
+        </section>
+      </div>
+      <nav class="pager" aria-label="Other items">${pager(prev, 'prev', 'prev')}${pager(next, 'next', 'next')}</nav>
+    </article>`;
   }
 
-  /* router */
-  var view = document.getElementById('view'), main = document.getElementById('main');
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function tick() {
-    var els = view.querySelectorAll('[data-count]');
-    Array.prototype.forEach.call(els, function (el) {
-      var to = Number(el.getAttribute('data-count')), inr = el.getAttribute('data-fmt') === 'inr';
-      var fmt = function (v) { return inr ? money(v) : String(Math.round(v)); };
-      if (reduce) { el.textContent = fmt(to); return; }
-      var t0 = performance.now(), dur = 900;
-      (function step(now) {
-        var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
-        el.textContent = fmt(to * e);
-        if (p < 1) requestAnimationFrame(step);
-      })(t0);
-    });
+  let filter = 'all';
+  function itemsPage() {
+    const list = enriched();
+    const f = { all: () => true, active: i => i.w.status === 'active', soon: i => i.w.status === 'soon', ended: i => ['ended', 'none'].includes(i.w.status) }[filter];
+    const shown = list.filter(f).sort((a, b) => (a.w.end ?? 9e15) - (b.w.end ?? 9e15));
+    return `
+    <div class="page-head"><div><h1 class="title">Items</h1><p>${plural(shown.length, 'item')} shown, soonest warranty first</p></div>
+      <div class="filters" role="group" aria-label="Filter by warranty">
+        ${[['all', 'All'], ['active', 'Covered'], ['soon', 'Ending soon'], ['ended', 'Not covered']].map(([k, l]) => `<button data-filter="${k}" aria-pressed="${filter === k}">${l}</button>`).join('')}
+      </div>
+    </div>
+    <section class="tile"><ul class="rows">${shown.map(row).join('') || '<li style="padding:14px 10px;color:var(--mu)">No items match this filter. Choose All to see everything.</li>'}</ul></section>`;
   }
 
-  function route() {
-    var h = location.hash.slice(1) || 'overview', m = /^item-(\d+)$/.exec(h), name = '';
-    var active = 'overview';
-    if (h === 'overview') { view.innerHTML = overview(); active = 'overview'; document.title = 'Benchlog Signal mockup'; }
-    else if (m) {
-      var it = ITEMS.filter(function (i) { return i.tag === Number(m[1]); })[0];
-      view.innerHTML = it ? itemView(it) : other(''); active = 'items'; document.title = (it ? it.name : 'Item') + ' · Benchlog';
-    } else { name = h === 'items' ? 'Items' : h === 'timeline' ? 'Timeline' : h === 'places' ? 'Places' : h === 'backup' ? 'Backup' : ''; view.innerHTML = other(name); active = h; document.title = 'Benchlog Signal mockup'; }
-    Array.prototype.forEach.call(document.querySelectorAll('#nav a'), function (a) {
-      if (a.getAttribute('data-r') === active) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
-    });
-    window.scrollTo(0, 0);
-    tick();
+  function stubPage(name) {
+    return `<div class="page-head"><div><h1 class="title">${name}</h1><p>This page is not part of the mockup. Overview, Items and each item page are.</p></div></div>
+      <a class="btn btn-solid" href="#overview">Back to Overview</a>`;
   }
-  window.addEventListener('hashchange', route);
 
-  /* date */
-  document.getElementById('today').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-
-  /* theme */
-  var themeBtn = document.getElementById('theme');
-  function setTheme(t) {
-    document.documentElement.setAttribute('data-scheme', t);
-    themeBtn.setAttribute('aria-pressed', String(t === 'light'));
-    themeBtn.textContent = t === 'light' ? 'Switch to dark theme' : 'Switch to light theme';
-    try { localStorage.setItem('signal-scheme', t); } catch (e) {}
+  /* ---------- Router ---------- */
+  const view = $('#view');
+  const parse = () => {
+    const h = location.hash.slice(1) || 'overview'; const m = /^item-(\d+)$/.exec(h);
+    if (m && ITEMS.some(i => i.id === +m[1])) return { name: 'item', id: +m[1] };
+    return { name: ['overview', 'items', 'timeline', 'places', 'backup'].includes(h) ? h : 'overview' };
+  };
+  let current = null;
+  function render() {
+    const r = parse(); current = r;
+    const titles = { overview: 'Overview', items: 'Items', timeline: 'Timeline', places: 'Places', backup: 'Backup' };
+    view.innerHTML = r.name === 'overview' ? overview() : r.name === 'items' ? itemsPage() : r.name === 'item' ? itemPage(r.id) : stubPage(titles[r.name]);
+    document.title = (r.name === 'item' ? ITEMS[r.id - 1].name : titles[r.name]) + ', Benchlog Signal mockup';
+    const navKey = r.name === 'item' ? 'items' : r.name;
+    $$('[data-nav]').forEach(a => { if (a.dataset.nav === navKey) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    movePill(); window.scrollTo(0, 0);
   }
-  try { var saved = localStorage.getItem('signal-scheme'); if (saved === 'light') setTheme('light'); } catch (e) {}
-  themeBtn.addEventListener('click', function () { setTheme(document.documentElement.getAttribute('data-scheme') === 'light' ? 'dark' : 'light'); });
-
-  /* palette */
-  var pal = document.getElementById('pal'), q = document.getElementById('pal-q'), list = document.getElementById('pal-list');
-  function fill() {
-    var s = q.value.trim().toLowerCase();
-    var hits = ITEMS.filter(function (i) { return !s || [i.name, i.brand, i.model, i.serial, i.store, i.loc, i.cat, tagOf(i.tag)].join(' ').toLowerCase().indexOf(s) > -1; });
-    list.innerHTML = hits.length ? hits.map(function (i) {
-      return '<li><button type="button" data-t="' + i.tag + '">' + tag(i) + '<span>' + i.name + '</span><span class="meta">' + (i.loc || i.cat) + '</span></button></li>';
-    }).join('') : '<li class="none">Nothing matches that. Try a serial number or a place.</li>';
+  function mark(id) {
+    $$('[data-vtn]').forEach(e => { e.style.viewTransitionName = ''; e.removeAttribute('data-vtn'); });
+    if (id == null) return;
+    const el = $(`.strip .cable[data-id="${id}"]`) || $(`.cable[data-id="${id}"]`);
+    if (el) { el.style.viewTransitionName = 'cable'; el.setAttribute('data-vtn', ''); }
   }
-  function openPal() { q.value = ''; fill(); if (!pal.open) pal.showModal(); q.focus(); }
-  document.getElementById('open-pal').addEventListener('click', openPal);
-  document.addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPal(); } });
-  q.addEventListener('input', fill);
-  q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { var b = list.querySelector('button'); if (b) b.click(); } });
-  list.addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
-    pal.close(); location.hash = 'item-' + b.getAttribute('data-t');
+  function transition(fn, id) {
+    if (!document.startViewTransition || reduce.matches) { fn(); return; }
+    mark(id);
+    const t = document.startViewTransition(() => { fn(); mark(id); });
+    t.finished.finally(() => mark(null));
+  }
+  function go(hash) {
+    if (location.hash === hash) return;
+    const from = current && current.name === 'item' ? current.id : null;
+    const next = /^#item-(\d+)$/.exec(hash); const to = next ? +next[1] : null;
+    transition(() => { history.pushState(null, '', hash); render(); }, to ?? from);
+  }
+  addEventListener('popstate', () => {
+    const from = current && current.name === 'item' ? current.id : null; const r = parse();
+    transition(render, r.name === 'item' ? r.id : from);
   });
-  pal.addEventListener('click', function (e) { if (e.target === pal) pal.close(); });
 
-  route();
+  /* Nav pill that slides to the active link */
+  function movePill() {
+    const nav = $('#nav'), pill = $('.pill', nav), a = $('a[aria-current="page"]', nav);
+    if (!a || !nav.offsetWidth) { pill.style.opacity = 0; return; }
+    pill.style.opacity = 1; pill.style.width = a.offsetWidth + 'px'; pill.style.transform = `translateX(${a.offsetLeft}px)`;
+  }
+  addEventListener('resize', movePill);
+  document.fonts && document.fonts.ready.then(movePill);
+
+  /* ---------- Theme ---------- */
+  function setScheme(s) {
+    document.documentElement.dataset.scheme = s;
+    try { localStorage.setItem('benchlog-scheme', s); } catch (e) {}
+  }
+  const flip = () => { const s = document.documentElement.dataset.scheme === 'dark' ? 'light' : 'dark'; transition(() => setScheme(s), null); };
+  $('#theme').addEventListener('click', flip);
+
+  /* ---------- Toast ---------- */
+  let tt; function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 2400); }
+
+  /* ---------- Delegated clicks ---------- */
+  document.addEventListener('click', e => {
+    const copy = e.target.closest('[data-copy]');
+    if (copy) { const v = copy.dataset.copy; if (!v) { toast('No serial number recorded for this item.'); return; }
+      try { navigator.clipboard.writeText(v); } catch (er) {} toast('Serial number copied'); return; }
+    const off = e.target.closest('[data-offset]');
+    if (off) { offset = +off.dataset.offset; transition(render, null); return; }
+    const fl = e.target.closest('[data-filter]');
+    if (fl) { filter = fl.dataset.filter; transition(render, null); return; }
+    if (e.target.closest('[data-stub-btn]')) { toast('The add and edit forms are not part of this mockup.'); return; }
+    const a = e.target.closest('a[href^="#"]');
+    if (a && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+      e.preventDefault();
+      if (a.hasAttribute('data-stub')) { toast(a.textContent.trim() + ' is not part of this mockup.'); return; }
+      go(a.getAttribute('href')); view.focus({ preventScroll: true });
+    }
+  });
+
+  /* ---------- Command palette ---------- */
+  const dlg = $('#palette'), qIn = $('#q'), resUl = $('#results');
+  let sel = 0, shownCmds = [];
+  function commands() {
+    const list = enriched();
+    const items = list.map(i => ({ label: i.name, hint: i.brand + ' ' + i.model, status: i.w.status, run: () => go('#item-' + i.id), key: [i.name, i.brand, i.model, i.tag, i.serial, i.location, i.category].join(' ') }));
+    const acts = [
+      { label: 'Go to Overview', hint: 'Page', run: () => go('#overview'), key: 'overview home' },
+      { label: 'Go to Items', hint: 'Page', run: () => go('#items'), key: 'items list all' },
+      { label: 'Switch colour theme', hint: 'Action', run: flip, key: 'theme dark light colour' },
+      { label: 'Add item', hint: 'Action', run: () => toast('The add form is not part of this mockup.'), key: 'add new item' },
+      { label: 'Preview: in 3 weeks', hint: 'Mockup', run: () => { offset = 21; go('#overview'); transition(render, null); }, key: 'preview date amber soon' },
+      { label: 'Preview: today', hint: 'Mockup', run: () => { offset = 0; transition(render, null); }, key: 'preview date today reset' },
+    ];
+    return [...items, ...acts];
+  }
+  function paint() {
+    const q = qIn.value.trim().toLowerCase(); const all = commands();
+    shownCmds = q ? all.filter(c => q.split(/\s+/).every(w => c.key.toLowerCase().includes(w) || c.label.toLowerCase().includes(w))) : all;
+    sel = Math.min(sel, Math.max(shownCmds.length - 1, 0));
+    resUl.innerHTML = shownCmds.length ? shownCmds.map((c, i) =>
+      `<li role="presentation"><button role="option" data-i="${i}" aria-selected="${i === sel}" ${c.status ? `data-status="${c.status}"` : ''}>${c.status ? '<span class="dot"></span>' : ''}${esc(c.label)}<small>${esc(c.hint)}</small></button></li>`).join('')
+      : `<li class="none">Nothing matches “${esc(qIn.value)}”. Try a brand, a serial number or a place.</li>`;
+    const s = $('[aria-selected="true"]', resUl); s && s.scrollIntoView({ block: 'nearest' });
+  }
+  function openFind() { qIn.value = ''; sel = 0; paint(); if (!dlg.open) dlg.showModal(); qIn.focus(); }
+  function run(i) { const c = shownCmds[i]; if (!c) return; dlg.close(); setTimeout(c.run, 40); }
+  $('#open-find').addEventListener('click', openFind);
+  qIn.addEventListener('input', () => { sel = 0; paint(); });
+  qIn.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); sel = (sel + 1) % Math.max(shownCmds.length, 1); paint(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); sel = (sel - 1 + shownCmds.length) % Math.max(shownCmds.length, 1); paint(); }
+    else if (e.key === 'Enter') { e.preventDefault(); run(sel); }
+  });
+  resUl.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) run(+b.dataset.i); });
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); dlg.open ? dlg.close() : openFind(); }
+    else if (e.key === '/' && !/input|textarea/i.test(document.activeElement.tagName) && !dlg.open) { e.preventDefault(); openFind(); }
+  });
+  $$('.find').forEach(b => b.addEventListener('click', openFind));
+
+  render();
 })();
 </script>
 </body>
