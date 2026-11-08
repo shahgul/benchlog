@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en" data-scheme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchlog Signal mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/*
+  Signal mockup. Standalone, not part of the app build.
+  Layout: slim rail (dock on phones), bento Overview, paper spec plate on item pages.
+  Tokens map to the app's html[data-scheme]. Dark is the default.
+*/
+:root {
+  --bg: #06080d;
+  --surface: #0d121b;
+  --surface-2: #131a27;
+  --line: #1b2433;
+  --line-2: #2b374c;
+  --ink: #eef2fa;
+  --muted: #94a0b8;
+  --faint: #5f6b82;
+  --active: #5aa2ff;
+  --soon: #ffb547;
+  --ended: #ff6568;
+  --none: #6b7790;
+  --paper: #f1eee7;
+  --paper-ink: #14171f;
+  --paper-muted: #5b5f6b;
+  --paper-line: #d9d4c8;
+  --dot: rgba(148, 160, 184, 0.16);
+  --g1: 70%;
+  --g2: 34%;
+  --aura: 26%;
+  --display: 'Big Shoulders Display', 'Arial Narrow', Impact, sans-serif;
+  --body: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+:root[data-scheme="light"] {
+  --bg: #edf0f6;
+  --surface: #ffffff;
+  --surface-2: #f4f6fa;
+  --line: #dbe1ec;
+  --line-2: #c4cddd;
+  --ink: #0b1020;
+  --muted: #546079;
+  --faint: #8591a8;
+  --active: #2a6be0;
+  --soon: #b3640a;
+  --ended: #d02c36;
+  --none: #8591a8;
+  --paper: #ffffff;
+  --paper-ink: #0b1020;
+  --paper-muted: #546079;
+  --paper-line: #dbe1ec;
+  --dot: rgba(84, 96, 121, 0.22);
+  --g1: 45%;
+  --g2: 18%;
+  --aura: 14%;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 15px/1.5 var(--body);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse at 60% 0%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(ellipse at 60% 0%, #000 0%, transparent 75%);
+}
+a { color: inherit; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--active); outline-offset: 3px; border-radius: 6px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skip { position: absolute; left: 12px; top: -60px; background: var(--ink); color: var(--bg); padding: 8px 12px; border-radius: 8px; z-index: 50; }
+.skip:focus { top: 12px; }
+
+/* shell */
+.shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
+.rail {
+  position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column; gap: 28px;
+  padding: 28px 20px 24px;
+  border-right: 1px solid var(--line);
+}
+.wordmark { font: 800 34px/0.9 var(--display); text-decoration: none; letter-spacing: 0.01em; }
+.wordmark span { color: var(--active); }
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav a {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 10px;
+  color: var(--muted); text-decoration: none; font-weight: 500;
+}
+.nav a svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.nav a:hover { color: var(--ink); background: var(--surface); }
+.nav a[aria-current="page"] { color: var(--ink); background: var(--surface-2); box-shadow: inset 2px 0 0 var(--active); }
+.rail-foot { margin-top: auto; display: flex; flex-direction: column; gap: 12px; }
+.rail-note { color: var(--faint); font-size: 13px; margin: 0; }
+.theme { background: none; border: 1px solid var(--line-2); border-radius: 10px; padding: 8px 12px; color: var(--muted); text-align: left; }
+.theme:hover { color: var(--ink); border-color: var(--faint); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 18px; border-radius: 10px; border: 1px solid var(--line-2);
+  background: transparent; color: var(--ink); font-weight: 600; text-decoration: none; line-height: 1.1;
+}
+.btn:hover { border-color: var(--faint); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.primary:hover { opacity: 0.9; }
+.btn.danger { color: var(--ended); border-color: color-mix(in srgb, var(--ended) 45%, transparent); }
+
+.page { padding: 28px clamp(16px, 4vw, 48px) 80px; max-width: 1240px; width: 100%; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+.search {
+  display: flex; align-items: center; gap: 10px; flex: 1; max-width: 460px;
+  padding: 10px 14px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--line); color: var(--muted); text-align: left;
+}
+.search:hover { border-color: var(--line-2); }
+.search svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; flex: none; }
+.search span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+kbd { font: 500 12px var(--mono); padding: 2px 7px; border-radius: 6px; border: 1px solid var(--line-2); color: var(--muted); }
+.today-date { color: var(--faint); font: 400 13px var(--mono); }
+
+/* tiles */
+.bento { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+.tile {
+  position: relative; overflow: hidden; min-width: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  padding: 20px 22px 22px;
+}
+.tile h2 { margin: 0 0 14px; font: 700 26px/1 var(--display); letter-spacing: 0.01em; }
+.tile-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.tile-head h2 { margin: 0; }
+.tile-head a { color: var(--muted); font-size: 14px; }
+.hero { grid-column: span 8; grid-row: span 2; border-radius: 22px; padding: 28px 30px 26px; border-color: var(--line-2); }
+.stat { grid-column: span 4; }
+.next { grid-column: span 4; }
+.ended-tile, .own, .spend { grid-column: span 4; }
+
+.hero::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(520px 260px at 88% -8%, color-mix(in srgb, var(--c) var(--aura), transparent), transparent 70%),
+    radial-gradient(420px 220px at 6% 110%, color-mix(in srgb, var(--c) calc(var(--aura) * .5), transparent), transparent 70%);
+}
+.hero > * { position: relative; }
+
+/* border beam (Magic UI idea, plain CSS) */
+@property --beam { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.beam::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: conic-gradient(from var(--beam), transparent 0 72%, var(--c) 88%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: spin 7s linear infinite;
+}
+@keyframes spin { to { --beam: 360deg; } }
+
+.kicker { margin: 0 0 6px; color: var(--muted); font-size: 15px; }
+.hero-title { margin: 0; font: 800 clamp(52px, 9vw, 112px)/0.88 var(--display); letter-spacing: 0.005em; text-wrap: balance; }
+.hero-title a { text-decoration: none; }
+.hero-title a:hover { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 8px; text-decoration-color: var(--c); }
+.hero-line { margin: 18px 0 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 17px; }
+.hero-num { font: 800 clamp(84px, 14vw, 168px)/0.8 var(--display); color: var(--c); text-shadow: 0 0 40px color-mix(in srgb, var(--c) 45%, transparent); font-variant-numeric: tabular-nums; }
+.hero-unit { font: 700 clamp(28px, 4vw, 44px)/1 var(--display); color: var(--ink); }
+.hero .cable { margin-top: 30px; }
+.dates { display: flex; justify-content: space-between; gap: 16px; margin-top: 12px; color: var(--muted); font: 400 13px var(--mono); }
+.dates b { display: block; color: var(--ink); font: 500 14px var(--mono); }
+.dates div:last-child { text-align: right; }
+
+.big { font: 800 56px/0.9 var(--display); font-variant-numeric: tabular-nums; }
+.big small { font: 700 26px var(--display); color: var(--muted); margin-left: 6px; }
+.stat p { margin: 10px 0 0; color: var(--muted); }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 5px 11px; border-radius: 99px;
+  border: 1px solid var(--line-2); font-size: 13px; color: var(--muted);
+}
+.pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); }
+
+/* asset tag */
+.tag {
+  position: relative; display: inline-flex; align-items: center; flex: none;
+  padding: 5px 10px 5px 13px; border-radius: 6px;
+  background: var(--surface-2); border: 1px solid var(--line-2);
+  font: 800 14px/1 var(--display); letter-spacing: 0.06em; color: var(--ink);
+}
+.tag::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--wire); border-radius: 6px 0 0 6px; }
+.tag.big { font-size: 22px; padding: 7px 14px 7px 18px; border-radius: 8px; }
+.tag.big::before { width: 6px; border-radius: 8px 0 0 8px; }
+
+/* rows */
+.rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.row { padding: 12px 0; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; padding-top: 0; }
+.row:last-child { padding-bottom: 0; }
+.row-top { display: flex; align-items: center; gap: 12px; }
+.row-name { flex: 1; min-width: 0; font-weight: 600; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-name:hover { text-decoration: underline; text-underline-offset: 4px; }
+.row-left { color: var(--c); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.row .cable { margin-top: 6px; }
+.row-sub { color: var(--faint); font-size: 13px; margin: 6px 0 0; }
+.ended-tile { border-color: color-mix(in srgb, var(--ended) 22%, var(--line)); }
+
+/* bars */
+.bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.bars li { display: grid; grid-template-columns: 76px minmax(0, 1fr) 44px; align-items: center; gap: 12px; font-size: 14px; }
+.bars .v { text-align: right; color: var(--muted); font: 400 13px var(--mono); }
+.bars .t { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.bars .b { display: block; height: 100%; border-radius: 99px; background: var(--wire); transform-origin: left; animation: draw 800ms cubic-bezier(.2, .7, .2, 1) both; }
+
+/* warranty cable */
+.cable {
+  --h: 48px; --sw: 30px; --sh: 34px; --pw: 22px; --ph: 20px; --wh: 4px;
+  display: flex; align-items: center; height: var(--h); position: relative;
+  --glow: color-mix(in srgb, var(--c) var(--g1), transparent);
+  --glow2: color-mix(in srgb, var(--c) var(--g2), transparent);
+}
+.cable.sm { --h: 24px; --sw: 18px; --sh: 20px; --pw: 14px; --ph: 12px; --wh: 3px; }
+.cable.lg { --h: 84px; --sw: 46px; --sh: 58px; --pw: 34px; --ph: 30px; --wh: 7px; }
+.run { position: relative; flex: 1; height: 100%; }
+.track { position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed var(--line-2); transform: translateY(-1px); }
+.wire {
+  position: absolute; top: 50%; left: calc(var(--e) * 100%); right: 0; height: var(--wh);
+  border-radius: 99px; background: var(--c); transform-origin: left center;
+  box-shadow: 0 0 10px var(--glow), 0 0 28px var(--glow2);
+  animation: draw 900ms cubic-bezier(.2, .7, .2, 1) both;
+}
+@keyframes draw { from { transform: translateY(-50%) scaleX(0); } to { transform: translateY(-50%) scaleX(1); } }
+.bars .b { animation-name: grow; }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.plug {
+  position: absolute; top: 50%; left: calc(var(--e) * 100%); width: var(--pw); height: var(--ph);
+  transform: translate(-50%, -50%); border-radius: 5px 3px 3px 5px;
+  background: var(--ink); color: var(--ink);
+  box-shadow: 0 0 0 3px var(--surface);
+}
+.plug::before, .plug::after {
+  content: ""; position: absolute; right: calc(var(--pw) * -0.34); width: calc(var(--pw) * 0.4);
+  height: max(2px, calc(var(--ph) * 0.15)); background: currentColor; border-radius: 2px;
+}
+.plug::before { top: 22%; }
+.plug::after { bottom: 22%; }
+.hero .plug { box-shadow: 0 0 0 4px var(--surface); }
+.socket {
+  position: relative; flex: none; width: var(--sw); height: var(--sh); border-radius: 6px;
+  background: var(--surface-2); border: 1px solid color-mix(in srgb, var(--c) 55%, var(--line-2));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 22%, transparent);
+}
+.socket::before, .socket::after {
+  content: ""; position: absolute; left: 0; width: 55%; height: max(2px, calc(var(--sh) * 0.1)); background: var(--bg); border-radius: 0 2px 2px 0;
+}
+.socket::before { top: 28%; }
+.socket::after { bottom: 28%; }
+.cable.expired .plug {
+  left: calc(100% - var(--sw) * 1.1); transform: translate(-50%, -50%) rotate(-22deg) translateY(calc(var(--h) * 0.22));
+  background: var(--muted); color: var(--muted); box-shadow: none;
+}
+.cable.expired .socket, .cable.none .socket { border-color: var(--line-2); box-shadow: none; }
+.cable.none .plug { display: none; }
+.today {
+  position: absolute; left: calc(var(--e) * 100%); top: -2px; transform: translate(-50%, -100%);
+  font: 500 12px var(--mono); color: var(--c); white-space: nowrap;
+}
+
+/* item page */
+.crumb { margin: 0 0 18px; }
+.crumb a { color: var(--muted); font-size: 14px; }
+.item-head { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.item-title { margin: 0; font: 800 clamp(56px, 10vw, 128px)/0.88 var(--display); text-wrap: balance; }
+.item-sub { margin: 0; color: var(--muted); font-size: 18px; }
+.status-line { margin: 22px 0 8px; font-size: 18px; color: var(--muted); }
+.status-line b { color: var(--c); }
+.item-cable { margin: 4px 0 0; padding: 40px 28px 22px; }
+.item-cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; margin-top: 14px; align-items: start; }
+.plate { background: var(--paper); color: var(--paper-ink); border: 1px solid var(--paper-line); border-radius: 16px; padding: 22px 24px; }
+.plate dl { margin: 0; }
+.plate .pr { display: flex; justify-content: space-between; gap: 20px; padding: 10px 0; border-top: 1px solid var(--paper-line); }
+.plate .pr:first-child { border-top: 0; padding-top: 0; }
+.plate dt { color: var(--paper-muted); }
+.plate dd { margin: 0; font-weight: 600; text-align: right; }
+.plate dd.mono { font: 500 14px var(--mono); }
+.plate .notes { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--paper-line); color: var(--paper-muted); }
+.drop {
+  display: flex; flex-direction: column; gap: 6px; align-items: flex-start;
+  border: 1.5px dashed var(--line-2); border-radius: 12px; padding: 18px; color: var(--muted);
+}
+.drop b { color: var(--ink); }
+.drop a { color: var(--active); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+
+.empty { padding: 60px 0; max-width: 520px; }
+.empty h1 { font: 800 56px/0.95 var(--display); margin: 0 0 12px; }
+.empty p { color: var(--muted); }
+
+/* command palette */
+dialog.pal {
+  width: min(560px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--line-2); border-radius: 16px;
+  background: var(--surface); color: var(--ink); margin-top: 12vh; overflow: hidden;
+}
+dialog.pal::backdrop { background: rgba(3, 5, 9, 0.6); }
+.pal input {
+  width: 100%; padding: 18px 20px; font: 500 17px var(--body); color: var(--ink);
+  background: transparent; border: 0; border-bottom: 1px solid var(--line); outline: none;
+}
+.pal ul { list-style: none; margin: 0; padding: 8px; max-height: 340px; overflow: auto; }
+.pal li button {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px;
+  background: none; border: 0; text-align: left;
+}
+.pal li button:hover, .pal li button:focus-visible { background: var(--surface-2); outline: none; }
+.pal .meta { margin-left: auto; color: var(--faint); font-size: 13px; }
+.pal .none { padding: 18px 20px; color: var(--muted); }
+
+/* responsive */
+@media (max-width: 1040px) {
+  .hero { grid-column: span 12; grid-row: auto; }
+  .stat, .next, .ended-tile, .own { grid-column: span 6; }
+  .spend { grid-column: span 12; }
+}
+@media (max-width: 800px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; height: auto; flex-direction: row; align-items: center; justify-content: space-between; padding: 14px 16px; border-right: 0; border-bottom: 1px solid var(--line); gap: 12px; }
+  .rail-foot { display: none; }
+  .nav {
+    position: fixed; left: 10px; right: 10px; bottom: 10px; z-index: 20; flex-direction: row; justify-content: space-around;
+    padding: 6px; background: var(--surface); border: 1px solid var(--line-2); border-radius: 18px;
+  }
+  .nav a { flex-direction: column; gap: 3px; padding: 8px 6px; font-size: 12px; flex: 1; align-items: center; border-radius: 12px; }
+  .nav a[aria-current="page"] { box-shadow: none; }
+  .rail .add { order: 3; padding: 9px 14px; }
+  .today-date { display: none; }
+  .page { padding: 20px 16px 110px; }
+  .stat, .next, .ended-tile, .own, .spend { grid-column: span 12; }
+  .hero { padding: 22px 20px; }
+  .item-cols { grid-template-columns: minmax(0, 1fr); }
+  .item-cable { padding: 38px 16px 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .beam::after, .wire, .bars .b { animation: none; }
+  * { scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="shell">
+  <aside class="rail">
+    <a class="wordmark" href="#overview" aria-label="Benchlog, home">Bench<span>log</span></a>
+    <nav class="nav" id="nav" aria-label="Main">
+      <a href="#overview" data-r="overview"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>Overview</a>
+      <a href="#items" data-r="items"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Items</a>
+      <a href="#timeline" data-r="timeline"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h9M7 12h13M5 18h8"/></svg>Timeline</a>
+      <a href="#places" data-r="places"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Places</a>
+      <a href="#backup" data-r="backup"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Backup</a>
+    </nav>
+    <a class="btn primary add" href="#add">Add item</a>
+    <div class="rail-foot">
+      <p class="rail-note">Saved on this device. Back up from Backup.</p>
+      <button class="theme" id="theme" type="button" aria-pressed="false">Switch to light theme</button>
+    </div>
+  </aside>
+  <main id="main" class="page" tabindex="-1">
+    <div class="topbar">
+      <button class="search" id="open-pal" type="button" aria-label="Search items">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>
+        <span>Search name, serial, store, place</span>
+        <kbd>Ctrl K</kbd>
+      </button>
+      <span class="today-date" id="today"></span>
+    </div>
+    <div id="view"></div>
+  </main>
+</div>
+
+<dialog class="pal" id="pal" aria-label="Search items">
+  <input id="pal-q" type="text" placeholder="Search name, serial, store, place" autocomplete="off" aria-label="Search items">
+  <ul id="pal-list"></ul>
+</dialog>
+
+<script>
+(function () {
+  var DAY = 86400000;
+  var CAT = { Laptop: '#66a3ff', Tablet: '#4fd1c5', Phone: '#8bd450', Monitor: '#b48cff', Camera: '#ff9f43', Audio: '#ff7eb6', Storage: '#7fd7ff', Charger: '#e9f0ea', Cable: '#c8e65a', Other: '#9bb0a6' };
+  var CATS = Object.keys(CAT);
+
+  function iso(monthsAgo, extra) {
+    var d = new Date();
+    d.setMonth(d.getMonth() - monthsAgo);
+    d.setDate(d.getDate() + (extra || 0));
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var dd = String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + m + '-' + dd;
+  }
+  var ITEMS = [
+    { tag: 1, name: 'Work laptop', cat: 'Laptop', brand: 'Lenovo', model: 'ThinkPad T14', serial: 'PF3K91LX', date: iso(10), price: 92000, store: 'Croma', months: 36, qty: 1, loc: 'Desk', notes: 'Bought with the 3-year onsite plan. Invoice is in the email from Croma.' },
+    { tag: 2, name: 'Gaming tablet', cat: 'Tablet', brand: 'Lenovo', model: 'Legion Y700', serial: 'HA2201B7', date: iso(5), price: 32999, store: 'Amazon', months: 12, qty: 1, loc: 'Bag', notes: '' },
+    { tag: 3, name: 'Main monitor', cat: 'Monitor', brand: 'Dell', model: 'U2723QE', serial: 'CN0W8M44', date: iso(11, 12), price: 54500, store: 'Dell store', months: 12, qty: 1, loc: 'Desk', notes: 'USB-C hub on the back powers the laptop. Ask Dell for a panel swap if dead pixels show up.' },
+    { tag: 4, name: 'Mirrorless body', cat: 'Camera', brand: 'Sony', model: 'A7 III', serial: '4829113', date: iso(30), price: 148000, store: 'Sony Center', months: 24, qty: 1, loc: 'Dry cabinet', notes: '' },
+    { tag: 5, name: 'USB-C to HDMI cable', cat: 'Cable', brand: 'Anker', model: '2 m 4K', serial: '', date: iso(3), price: 1299, store: 'Amazon', months: 18, qty: 2, loc: 'Cable drawer', notes: '' },
+    { tag: 6, name: 'GaN charger', cat: 'Charger', brand: 'Ugreen', model: '100 W 4-port', serial: '', date: iso(14), price: 3499, store: 'Amazon', months: 12, qty: 1, loc: 'Desk', notes: '' },
+    { tag: 7, name: 'Desk lamp', cat: 'Other', brand: 'Xiaomi', model: 'Mi LED 1S', serial: '', date: iso(2), price: 2499, store: 'Mi Home', months: 0, qty: 1, loc: '', notes: '' }
+  ];
+
+  function parse(s) { return new Date(s + 'T00:00:00'); }
+  function warranty(it) {
+    if (!it.months || !it.date) return { status: 'none', end: null, left: 0, elapsed: 0 };
+    var start = parse(it.date), end = new Date(start);
+    end.setMonth(end.getMonth() + it.months);
+    var n = new Date(), today = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    var total = Math.max(1, Math.round((end - start) / DAY));
+    var left = Math.round((end - today) / DAY);
+    var elapsed = Math.min(1, Math.max(0, 1 - left / total));
+    return { status: left < 0 ? 'expired' : left <= 30 ? 'soon' : 'active', end: end, left: left, elapsed: elapsed };
+  }
+  ITEMS.forEach(function (i) { i.w = warranty(i); });
+
+  function dayFmt(d) { if (!d) return ''; if (typeof d === 'string') d = parse(d); return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); }
+  function money(n) { return n == null ? '' : new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n); }
+  function short(n) {
+    if (n >= 1e7) return '₹' + (n / 1e7).toFixed(1) + ' Cr';
+    if (n >= 1e5) return '₹' + (n / 1e5).toFixed(1) + ' L';
+    if (n >= 1e3) return '₹' + (n / 1e3).toFixed(n >= 1e4 ? 0 : 1) + ' K';
+    return '₹' + n;
+  }
+  function tagOf(n) { return 'BL-' + String(n).padStart(4, '0'); }
+  function leftText(it) {
+    var w = it.w;
+    if (w.status === 'none') return 'No warranty';
+    if (w.status === 'expired') { var n = -w.left; return n === 0 ? 'Ended today' : 'Ended ' + n + ' day' + (n === 1 ? '' : 's') + ' ago'; }
+    if (w.left === 0) return 'Ends today';
+    if (w.left < 90) return w.left + ' day' + (w.left === 1 ? '' : 's') + ' left';
+    var mo = Math.round(w.left / 30.4);
+    if (mo < 24) return mo + ' months left';
+    return (w.left / 365).toFixed(1) + ' years left';
+  }
+  function colorOf(status) { return status === 'active' ? 'var(--active)' : status === 'soon' ? 'var(--soon)' : status === 'expired' ? 'var(--ended)' : 'var(--none)'; }
+  function wire(it) { return CAT[it.cat]; }
+  function link(it) { return '#item-' + it.tag; }
+
+  function cable(it, size) {
+    var w = it.w, e = w.status === 'none' ? 0 : w.elapsed;
+    var live = w.status === 'active' || w.status === 'soon';
+    return '<div class="cable ' + (size || '') + ' ' + w.status + '" style="--e:' + e.toFixed(4) + ';--c:' + colorOf(w.status) + '" role="img" aria-label="' + it.name + ': ' + leftText(it) + '">' +
+      '<div class="run"><i class="track"></i>' + (live ? '<i class="wire"></i>' : '') + '<i class="plug"></i>' +
+      (size === 'lg' && live ? '<span class="today">Today</span>' : '') + '</div><i class="socket"></i></div>';
+  }
+  function tag(it, big) { return '<span class="tag' + (big ? ' big' : '') + '" style="--wire:' + wire(it) + '">' + tagOf(it.tag) + '</span>'; }
+
+  function row(it) {
+    var w = it.w;
+    return '<li class="row" style="--c:' + colorOf(w.status) + '"><div class="row-top">' + tag(it) +
+      '<a class="row-name" href="' + link(it) + '">' + it.name + (it.qty > 1 ? ' ×' + it.qty : '') + '</a>' +
+      '<span class="row-left">' + leftText(it) + '</span></div>' + cable(it, 'sm') + '</li>';
+  }
+
+  /* views */
+  function overview() {
+    var live = ITEMS.filter(function (i) { return i.w.status === 'active' || i.w.status === 'soon'; }).sort(function (a, b) { return a.w.left - b.w.left; });
+    var ended = ITEMS.filter(function (i) { return i.w.status === 'expired'; }).sort(function (a, b) { return b.w.left - a.w.left; });
+    var none = ITEMS.filter(function (i) { return i.w.status === 'none'; }).length;
+    var units = ITEMS.reduce(function (n, i) { return n + i.qty; }, 0);
+    var worth = ITEMS.reduce(function (n, i) { return n + (i.price || 0) * i.qty; }, 0);
+    var hero = live[0], rest = live.slice(1, 4);
+
+    var byCat = CATS.map(function (c) { return { c: c, n: ITEMS.filter(function (i) { return i.cat === c; }).reduce(function (n, i) { return n + i.qty; }, 0) }; })
+      .filter(function (x) { return x.n > 0; }).sort(function (a, b) { return b.n - a.n; });
+    var maxCat = Math.max.apply(null, byCat.map(function (x) { return x.n; }));
+    var years = {};
+    ITEMS.forEach(function (i) { var y = i.date.slice(0, 4); years[y] = (years[y] || 0) + i.price * i.qty; });
+    var spend = Object.keys(years).sort().map(function (y) { return [y, years[y]]; });
+    var maxSpend = Math.max.apply(null, spend.map(function (s) { return s[1]; }));
+
+    var d = hero.w.left, big = d < 120 ? d : Math.round(d / 30.4), unit = d < 120 ? (d === 1 ? 'day' : 'days') : 'months';
+
+    return '' +
+    '<div class="bento">' +
+      '<section class="tile hero beam" style="--c:' + colorOf(hero.w.status) + '" aria-labelledby="hero-title">' +
+        '<p class="kicker">Next warranty to run out</p>' +
+        '<h1 class="hero-title" id="hero-title"><a href="' + link(hero) + '">' + hero.name + '</a></h1>' +
+        '<p class="hero-line"><span>runs out in</span><span><b class="hero-num" data-count="' + big + '">' + big + '</b></span><span class="hero-unit">' + unit + '</span></p>' +
+        cable(hero, 'lg') +
+        '<div class="dates"><div>Bought<b>' + dayFmt(hero.date) + '</b></div><div>Warranty ends<b>' + dayFmt(hero.w.end) + '</b></div></div>' +
+      '</section>' +
+
+      '<section class="tile stat" aria-labelledby="t-bench">' +
+        '<h2 id="t-bench">On the bench</h2>' +
+        '<div class="big"><span data-count="' + units + '">' + units + '</span><small>units in ' + ITEMS.length + ' items</small></div>' +
+        '<p>Worth <b style="color:var(--ink)" data-count="' + worth + '" data-fmt="inr">' + money(worth) + '</b></p>' +
+        '<div class="pills"><span class="pill" style="--c:var(--active)"><i></i>' + live.length + ' under warranty</span><span class="pill" style="--c:var(--ended)"><i></i>' + ended.length + ' unplugged</span><span class="pill" style="--c:var(--none)"><i></i>' + none + ' no warranty</span></div>' +
+      '</section>' +
+
+      '<section class="tile next" aria-labelledby="t-next">' +
+        '<div class="tile-head"><h2 id="t-next">Running out next</h2><a href="#items">All items</a></div>' +
+        '<ul class="rows">' + rest.map(row).join('') + '</ul>' +
+      '</section>' +
+
+      '<section class="tile ended-tile" aria-labelledby="t-ended">' +
+        '<div class="tile-head"><h2 id="t-ended">Unplugged</h2><a href="#items">See all ended</a></div>' +
+        '<ul class="rows">' + ended.map(row).join('') + '</ul>' +
+      '</section>' +
+
+      '<section class="tile own" aria-labelledby="t-own">' +
+        '<h2 id="t-own">What you own</h2>' +
+        '<ul class="bars">' + byCat.map(function (x) { return '<li><span>' + x.c + '</span><span class="t"><span class="b" style="--wire:' + CAT[x.c] + ';width:' + (x.n / maxCat * 100) + '%"></span></span><span class="v">' + x.n + '</span></li>'; }).join('') + '</ul>' +
+      '</section>' +
+
+      '<section class="tile spend" aria-labelledby="t-spend">' +
+        '<h2 id="t-spend">What you spent</h2>' +
+        '<ul class="bars">' + spend.map(function (s) { return '<li><span>' + s[0] + '</span><span class="t"><span class="b" style="--wire:var(--active);width:' + (s[1] / maxSpend * 100) + '%"></span></span><span class="v">' + short(s[1]) + '</span></li>'; }).join('') + '</ul>' +
+      '</section>' +
+    '</div>';
+  }
+
+  function plateRow(k, v, mono) { return v ? '<div class="pr"><dt>' + k + '</dt><dd' + (mono ? ' class="mono"' : '') + '>' + v + '</dd></div>' : ''; }
+
+  function itemView(it) {
+    var w = it.w;
+    return '' +
+    '<article style="--c:' + colorOf(w.status) + '">' +
+      '<p class="crumb"><a href="#items">All items</a></p>' +
+      '<div class="item-head">' + tag(it, true) +
+        '<h1 class="item-title">' + it.name + '</h1>' +
+        '<p class="item-sub">' + ([it.brand, it.model].filter(Boolean).join(' ') || it.cat) + '</p></div>' +
+      '<p class="status-line"><b>' + leftText(it) + '</b>' + (w.end ? ', ' + (w.status === 'expired' ? 'ended ' : 'ends ') + dayFmt(w.end) : '') + '</p>' +
+      '<section class="tile item-cable" aria-label="Warranty">' + cable(it, 'lg') +
+        '<div class="dates"><div>Bought<b>' + dayFmt(it.date) + '</b></div><div>Warranty ends<b>' + (w.end ? dayFmt(w.end) : 'No warranty') + '</b></div></div></section>' +
+      '<div class="item-cols">' +
+        '<section class="plate" aria-labelledby="specs"><h2 id="specs" class="sr">Details</h2><dl>' +
+          plateRow('Category', it.cat) + plateRow('Brand', it.brand) + plateRow('Model', it.model) + plateRow('Serial', it.serial, true) +
+          plateRow('Quantity', it.qty > 1 ? String(it.qty) : '') + plateRow('Bought', dayFmt(it.date)) + plateRow('Price', money(it.price)) +
+          plateRow('From', it.store) + plateRow('Warranty', it.months ? it.months + ' months' : 'None') + plateRow('Kept in', it.loc) +
+        '</dl>' + (it.notes ? '<p class="notes">' + it.notes + '</p>' : '') + '</section>' +
+        '<section class="tile" aria-labelledby="files"><h2 id="files">Photos and papers</h2>' +
+          '<div class="drop"><b>Nothing attached yet</b><span><a href="#add">Add the invoice or a photo</a> so a warranty claim is one tap away.</span></div></section>' +
+      '</div>' +
+      '<div class="actions"><a class="btn primary" href="#add">Edit item</a><button class="btn danger" type="button">Delete</button></div>' +
+    '</article>';
+  }
+
+  function other(name) {
+    return '<div class="empty"><h1>Not in this mockup</h1><p>This preview covers the Overview and one item page. ' + (name ? 'The ' + name + ' page' : 'That page') + ' will get the same treatment once you approve the direction.</p><a class="btn primary" href="#overview">Back to Overview</a></div>';
+  }
+
+  /* router */
+  var view = document.getElementById('view'), main = document.getElementById('main');
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function tick() {
+    var els = view.querySelectorAll('[data-count]');
+    Array.prototype.forEach.call(els, function (el) {
+      var to = Number(el.getAttribute('data-count')), inr = el.getAttribute('data-fmt') === 'inr';
+      var fmt = function (v) { return inr ? money(v) : String(Math.round(v)); };
+      if (reduce) { el.textContent = fmt(to); return; }
+      var t0 = performance.now(), dur = 900;
+      (function step(now) {
+        var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(to * e);
+        if (p < 1) requestAnimationFrame(step);
+      })(t0);
+    });
+  }
+
+  function route() {
+    var h = location.hash.slice(1) || 'overview', m = /^item-(\d+)$/.exec(h), name = '';
+    var active = 'overview';
+    if (h === 'overview') { view.innerHTML = overview(); active = 'overview'; document.title = 'Benchlog Signal mockup'; }
+    else if (m) {
+      var it = ITEMS.filter(function (i) { return i.tag === Number(m[1]); })[0];
+      view.innerHTML = it ? itemView(it) : other(''); active = 'items'; document.title = (it ? it.name : 'Item') + ' · Benchlog';
+    } else { name = h === 'items' ? 'Items' : h === 'timeline' ? 'Timeline' : h === 'places' ? 'Places' : h === 'backup' ? 'Backup' : ''; view.innerHTML = other(name); active = h; document.title = 'Benchlog Signal mockup'; }
+    Array.prototype.forEach.call(document.querySelectorAll('#nav a'), function (a) {
+      if (a.getAttribute('data-r') === active) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    window.scrollTo(0, 0);
+    tick();
+  }
+  window.addEventListener('hashchange', route);
+
+  /* date */
+  document.getElementById('today').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  /* theme */
+  var themeBtn = document.getElementById('theme');
+  function setTheme(t) {
+    document.documentElement.setAttribute('data-scheme', t);
+    themeBtn.setAttribute('aria-pressed', String(t === 'light'));
+    themeBtn.textContent = t === 'light' ? 'Switch to dark theme' : 'Switch to light theme';
+    try { localStorage.setItem('signal-scheme', t); } catch (e) {}
+  }
+  try { var saved = localStorage.getItem('signal-scheme'); if (saved === 'light') setTheme('light'); } catch (e) {}
+  themeBtn.addEventListener('click', function () { setTheme(document.documentElement.getAttribute('data-scheme') === 'light' ? 'dark' : 'light'); });
+
+  /* palette */
+  var pal = document.getElementById('pal'), q = document.getElementById('pal-q'), list = document.getElementById('pal-list');
+  function fill() {
+    var s = q.value.trim().toLowerCase();
+    var hits = ITEMS.filter(function (i) { return !s || [i.name, i.brand, i.model, i.serial, i.store, i.loc, i.cat, tagOf(i.tag)].join(' ').toLowerCase().indexOf(s) > -1; });
+    list.innerHTML = hits.length ? hits.map(function (i) {
+      return '<li><button type="button" data-t="' + i.tag + '">' + tag(i) + '<span>' + i.name + '</span><span class="meta">' + (i.loc || i.cat) + '</span></button></li>';
+    }).join('') : '<li class="none">Nothing matches that. Try a serial number or a place.</li>';
+  }
+  function openPal() { q.value = ''; fill(); if (!pal.open) pal.showModal(); q.focus(); }
+  document.getElementById('open-pal').addEventListener('click', openPal);
+  document.addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPal(); } });
+  q.addEventListener('input', fill);
+  q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { var b = list.querySelector('button'); if (b) b.click(); } });
+  list.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    pal.close(); location.hash = 'item-' + b.getAttribute('data-t');
+  });
+  pal.addEventListener('click', function (e) { if (e.target === pal) pal.close(); });
+
+  route();
+})();
+</script>
+</body>
+</html>
